@@ -1,0 +1,40 @@
+# Use with compose.yaml, and with compose.http.yaml when serving over HTTP. The
+# `qlaya-serve` entry repeats the CUDA build args and device reservation because it is
+# a separate service: overrides for `qlaya` never reach it, so it would serve on CPU.
+services:
+  qlaya:
+    build:
+      args:
+        TORCH_INDEX: "${QLAYA_TORCH_INDEX:-cu128}"
+    environment:
+      QLAYA_DEVICE: "${QLAYA_DEVICE:-cuda}"
+      # The runtime reads these when it picks the autocast dtype; empty keeps the checkpoint's
+      # own `amp_dtype`. README's threshold section measures what fp16 vs bf16 decides differently.
+      QLAYA_CUDA_AMP: "${QLAYA_CUDA_AMP:-}"
+      QLAYA_CPU_AMP: "${QLAYA_CPU_AMP:-}"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["${QLAYA_GPU_ID:-0}"]
+              capabilities: [gpu]
+
+  qlaya-serve:
+    build:
+      context: .
+      args:
+        TORCH_INDEX: "${QLAYA_TORCH_INDEX:-cu128}"
+    environment:
+      QLAYA_DEVICE: "${QLAYA_DEVICE:-cuda}"
+      # The runtime reads these when it picks the autocast dtype; empty keeps the checkpoint's
+      # own `amp_dtype`. README's threshold section measures what fp16 vs bf16 decides differently.
+      QLAYA_CUDA_AMP: "${QLAYA_CUDA_AMP:-}"
+      QLAYA_CPU_AMP: "${QLAYA_CPU_AMP:-}"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["${QLAYA_GPU_ID:-0}"]
+              capabilities: [gpu]

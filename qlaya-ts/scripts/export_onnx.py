@@ -2,8 +2,8 @@
 
 Source of truth stays ``model.safetensors``; this script produces the two ONNX
 files the ``qlaya-ts`` Node/Web providers load. Run once per checkpoint:
-    python qlaya-ts/scripts/export_onnx.py --repo convaiinnovations/qlaya --out-dir ./model
-    python qlaya-ts/scripts/export_onnx.py --repo convaiinnovations/qlaya --subfolder multilingual --out-dir ./model-ml
+    python qlaya-ts/scripts/export_onnx.py --repo saipy10/qlaya --out-dir ./model
+    python qlaya-ts/scripts/export_onnx.py --repo saipy10/qlaya --subfolder multilingual --out-dir ./model-ml
     python qlaya-ts/scripts/export_onnx.py --model-dir <local ckpt> --out-dir ./model
 
 With ``--repo`` the checkpoint is downloaded from Hugging Face (safetensors +
@@ -27,7 +27,7 @@ try:
 except ImportError:  # --help must work without torch installed
     build_model = None
 
-DEFAULT_REPO = "convaiinnovations/qlaya"
+DEFAULT_REPO = "saipy10/qlaya"
 
 
 def _download(repo, subfolder=None, token=None):

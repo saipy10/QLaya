@@ -24,5 +24,5 @@ Runtime has no INT8 MatMul kernel on the CUDAExecutionProvider, and a GPU provid
 falls back per node.
 
 ```bash
-python scripts/export_onnx.py --model convaiinnovations/qlaya --output qlaya.onnx --quantize
+python scripts/export_onnx.py --model saipy10/qlaya --output qlaya.onnx --quantize
 ```

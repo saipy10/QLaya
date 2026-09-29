@@ -243,7 +243,7 @@ describe("router hooks", () => {
             seen.push(ctx.decision?.model as string);
             ctx.decision = {
               model: "multilingual",
-              repo: "convaiinnovations/qlaya/multilingual",
+              repo: "acme/multilingual",
               reason: "pinned by a hook",
               detection: null,
               workflow: null,

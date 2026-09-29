@@ -112,7 +112,7 @@ class DownloadTests(unittest.TestCase):
             self.assertEqual(set(downloaded), {prefix + name for name in self.runtime_files})
 
     def test_default_english_does_not_download_sibling_checkpoints(self):
-        self.check_download("convaiinnovations/qlaya")
+        self.check_download("saipy10/qlaya")
 
     def test_custom_root_checkpoint(self):
         self.check_download("test/custom-model")
@@ -182,14 +182,14 @@ class DownloadTests(unittest.TestCase):
         return (download.call_args.kwargs if download.call_args else {}).get("revision")
 
     def test_no_pin_asked_for_keeps_the_hub_default(self):
-        download, agent, error = self.hub_load("convaiinnovations/qlaya")
+        download, agent, error = self.hub_load("saipy10/qlaya")
         self.assertIsNone(error)
         self.assertNotIn("revision", download.call_args.kwargs)
         self.assertIsNone(agent.revision)
         self.assertEqual(agent.predict("hello", self.questions), self.expected)
 
     def test_environment_revision_reaches_the_download(self):
-        download, agent, error = self.hub_load("convaiinnovations/qlaya", env="ab" * 20)
+        download, agent, error = self.hub_load("saipy10/qlaya", env="ab" * 20)
         self.assertIsNone(error)
         self.assertEqual(self.sent_revision(download), "ab" * 20)
         self.assertEqual(agent.revision, "ab" * 20)
@@ -213,16 +213,16 @@ class DownloadTests(unittest.TestCase):
         download.assert_not_called()
 
     def test_an_explicit_revision_outranks_the_environment(self):
-        download, agent, error = self.hub_load("convaiinnovations/qlaya", env="reviewed",
+        download, agent, error = self.hub_load("saipy10/qlaya", env="reviewed",
                                                revision="cd" * 20)
         self.assertIsNone(error)
         self.assertEqual(self.sent_revision(download), "cd" * 20)
-        self.assertNotEqual(agent.revision, PINNED_REVISIONS["convaiinnovations/qlaya"])
+        self.assertNotEqual(agent.revision, PINNED_REVISIONS["saipy10/qlaya"])
 
     def test_an_empty_or_blank_environment_value_is_not_a_pin(self):
         for env in ("", "   ", "\t"):
             with self.subTest(repr=repr(env)):
-                download, agent, error = self.hub_load("convaiinnovations/qlaya", env=env)
+                download, agent, error = self.hub_load("saipy10/qlaya", env=env)
                 self.assertIsNone(error)
                 self.assertNotIn("revision", download.call_args.kwargs)
                 self.assertIsNone(agent.revision)
@@ -238,7 +238,7 @@ class DownloadTests(unittest.TestCase):
         """`/health`'s `revisions` block is `Router.loaded_revisions`, so the pin shows up there."""
         from qlaya import Router
 
-        bundle = "convaiinnovations/qlaya"
+        bundle = "saipy10/qlaya"
         with patch.dict(os.environ), patch("huggingface_hub.snapshot_download",
                                            return_value=str(self.repo)):
             os.environ.pop("QLAYA_REVISION", None)

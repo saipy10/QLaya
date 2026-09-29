@@ -79,11 +79,11 @@ DEFAULT_MAX_CONCURRENT = 16
 # Server-side ceiling on per-request max_len/head_max_len token budget overrides.
 DEFAULT_MAX_TOKEN_BUDGET = 8192
 # Public Hugging Face ids, accepted so a client can name a checkpoint. The root bundle is
-# deliberately absent: the documented ``convaiinnovations/qlaya`` value means
+# deliberately absent: the documented ``saipy10/qlaya`` value means
 # "let the Router choose", rather than pinning the English checkpoint.
 _PUBLISHED_MODEL_IDS = {
-    "convaiinnovations/qlaya-multilingual": "multilingual",
-    "convaiinnovations/qlaya-typed-decisions": "typed-decisions",
+    "saipy10/qlaya-multilingual": "multilingual",
+    "saipy10/qlaya-typed-decisions": "typed-decisions",
 }
 
 

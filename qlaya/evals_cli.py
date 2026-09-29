@@ -136,7 +136,7 @@ def _build_parser() -> argparse.ArgumentParser:
     run.add_argument("--onnx", metavar="PATH",
                      help="evaluate an ONNX export through ONNXAgent instead of the torch Router; "
                           "--model then names the checkpoint directory or Hub id the export came "
-                          "from (default convaiinnovations/qlaya)")
+                          "from (default saipy10/qlaya)")
     run.add_argument("--revision", action="append", metavar="SHA | NAME=SHA",
                      help="pin the checkpoint commit: a bare SHA applies to every checkpoint this "
                           "run loads, NAME=SHA pins one (repeatable). Unpinned runs fetch the "
@@ -242,7 +242,7 @@ def _cmd_run(args) -> int:
         # --revision pins that checkpoint's config and tokenizer download.
         if revisions:
             raise EvalError("--revision NAME=SHA needs the Router; with --onnx pass one bare SHA")
-        agent = ONNXAgent(args.model or "convaiinnovations/qlaya", onnx_path=args.onnx,
+        agent = ONNXAgent(args.model or "saipy10/qlaya", onnx_path=args.onnx,
                           revision=revision)
         runner: Any = OnnxRunner(agent)
     else:

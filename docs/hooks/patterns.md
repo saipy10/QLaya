@@ -54,7 +54,7 @@ def audit(ctx):
         }, sys.stdout)
         sys.stdout.write("\n")
 
-qlaya.load("convaiinnovations/qlaya", on_predict_end=audit)
+qlaya.load("saipy10/qlaya", on_predict_end=audit)
 ```
 
 A hook fires once per call, and a `predict_batch` call carries every state in it, so the record is
@@ -79,7 +79,7 @@ def redact(ctx):
         for s in ctx.states
     ]
 
-qlaya.load("convaiinnovations/qlaya", on_predict_start=redact)
+qlaya.load("saipy10/qlaya", on_predict_start=redact)
 ```
 
 A redaction hook is a policy hook: keep `hooks_raise=True`, because a silently broken redactor
@@ -111,7 +111,7 @@ def write(ctx):
     for i, result in enumerate(ctx.results or []):
         CACHE[key(ctx, i)] = result
 
-qlaya.load("convaiinnovations/qlaya", on_predict_start=read, on_predict_end=write)
+qlaya.load("saipy10/qlaya", on_predict_start=read, on_predict_end=write)
 ```
 
 Hooks fire once per call, so keying on one state is not enough on `predict_batch`: `ctx.skip()`
@@ -135,7 +135,7 @@ def metrics(ctx):
     if ctx.elapsed_ms is not None:
         LATENCIES.append(ctx.elapsed_ms)
 
-qlaya.load("convaiinnovations/qlaya", on_predict_end=metrics, hooks_raise=False)
+qlaya.load("saipy10/qlaya", on_predict_end=metrics, hooks_raise=False)
 ```
 
 ### Guardrails
@@ -151,7 +151,7 @@ def guard(ctx):
     if any("ssn" in str(state).lower() for state in ctx.states):
         raise Blocked("possible PII in state")
 
-qlaya.load("convaiinnovations/qlaya", on_predict_start=guard)
+qlaya.load("saipy10/qlaya", on_predict_start=guard)
 ```
 
 Test it against the state shape. A guard that only reads `ctx.states[0]` blocks a single call and
@@ -170,7 +170,7 @@ def gate(ctx):
             answer["choice"] = "human-review"
             answer["gated"] = True
 
-qlaya.load("convaiinnovations/qlaya", on_predict_end=gate)
+qlaya.load("saipy10/qlaya", on_predict_end=gate)
 ```
 
 Mutate through `ctx.results`, which holds one dict per state of the call: gating only the first
@@ -187,7 +187,7 @@ def pin(ctx):
     if "refund" in str(ctx.states[0]).lower():
         ctx.decision = RouteDecision(
             model="typed-decisions",
-            repo="convaiinnovations/qlaya/typed-decisions",
+            repo="saipy10/qlaya/typed-decisions",
             reason="refund workflow",
             detection=None,
             workflow=None,
@@ -223,7 +223,7 @@ def make_audit(tenant):
         ship(tenant, ctx.run_id, ctx.results)
     return audit
 
-agent = qlaya.load("convaiinnovations/qlaya", on_predict_end=make_audit("acme"))
+agent = qlaya.load("saipy10/qlaya", on_predict_end=make_audit("acme"))
 ```
 
 ### Composition
@@ -232,7 +232,7 @@ Several hooks of different kinds compose naturally; installed hooks run first, i
 
 ```python
 agent = qlaya.load(
-    "convaiinnovations/qlaya",
+    "saipy10/qlaya",
     hooks=[Metrics(), Guardrail()],     # metrics first, then policy
     on_predict_start=redact,            # convenience callables appended after hooks
     hooks_raise=True,                   # policy failures are fatal
@@ -304,7 +304,7 @@ def widen_for_high_cardinality(ctx):
         ctx.head_max_len = need
         ctx.max_len = max(window, need + 8 + 64)   # 8 reserved, then room for the state
 
-agent = qlaya.load("convaiinnovations/qlaya", on_predict_start=widen_for_high_cardinality)
+agent = qlaya.load("saipy10/qlaya", on_predict_start=widen_for_high_cardinality)
 ```
 
 This does not touch the shared agent config, so concurrent calls are unaffected. The same knobs are
@@ -437,10 +437,10 @@ rejected. Use `on_predict_start=` / `on_predict_end=`.
 
 ```python
 # bad: TypeError
-qlaya.load("convaiinnovations/qlaya", hooks=[lambda ctx: None])
+qlaya.load("saipy10/qlaya", hooks=[lambda ctx: None])
 
 # good
-qlaya.load("convaiinnovations/qlaya", on_predict_end=lambda ctx: None)
+qlaya.load("saipy10/qlaya", on_predict_end=lambda ctx: None)
 ```
 
 ### Assuming results exist in end hooks

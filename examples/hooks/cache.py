@@ -42,7 +42,7 @@ def cache_write(ctx):
         CACHE[cache_key(ctx, i)] = result
 
 
-agent = qlaya.load("convaiinnovations/qlaya",
+agent = qlaya.load("saipy10/qlaya",
                   on_predict_start=cache_read, on_predict_end=cache_write)
 
 STATE = "I was charged twice for the same invoice."

@@ -30,7 +30,7 @@ import qlaya
 def log(ctx):
     print(ctx.model, ctx.results[0]["answers"], ctx.elapsed_ms)
 
-agent = qlaya.load("convaiinnovations/qlaya", on_predict_end=log)
+agent = qlaya.load("saipy10/qlaya", on_predict_end=log)
 agent.system_one("I was charged twice.", {"urgent": {"type": "noul", "instructions": "Urgent?"}})
 ```
 
@@ -47,7 +47,7 @@ class Audit:
     def on_error(self, ctx):
         print("failed", ctx.run_id, ctx.error)
 
-qlaya.load("convaiinnovations/qlaya", hooks=[Audit()])
+qlaya.load("saipy10/qlaya", hooks=[Audit()])
 ```
 
 Hooks can also be added later or scoped to a block:

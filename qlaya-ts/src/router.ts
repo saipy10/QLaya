@@ -14,7 +14,7 @@ import {
   type PredictHook,
 } from "./hooks.js";
 
-export const BUNDLE_REPO = "convaiinnovations/qlaya";
+export const BUNDLE_REPO = "saipy10/qlaya";
 
 export interface ModelSpec {
   repo: string;
@@ -28,9 +28,9 @@ export const DEFAULT_MODELS: Record<string, ModelSpec> = {
 };
 
 export const STANDALONE_MODELS: Record<string, string> = {
-  english: "convaiinnovations/qlaya",
-  multilingual: "convaiinnovations/qlaya-multilingual",
-  "typed-decisions": "convaiinnovations/qlaya-typed-decisions",
+  english: "saipy10/qlaya",
+  multilingual: "saipy10/qlaya-multilingual",
+  "typed-decisions": "saipy10/qlaya-typed-decisions",
 };
 
 /**

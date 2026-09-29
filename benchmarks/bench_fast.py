@@ -14,7 +14,7 @@ import qlaya
 from qlaya.common import QTYPES, build_sequence, collate_items, ece_score
 
 ap = argparse.ArgumentParser()
-ap.add_argument("--model", default="convaiinnovations/qlaya"); ap.add_argument("--subfolder", default=None)
+ap.add_argument("--model", default="saipy10/qlaya"); ap.add_argument("--subfolder", default=None)
 ap.add_argument("--eval", type=int, default=0, help="samples per dataset for the accuracy comparison (0 = skip)")
 ap.add_argument("--iters", type=int, default=30); ap.add_argument("--json", default=None)
 ap.add_argument("--dtype", choices=["bf16", "fp16"], default=None, help="autocast dtype for stock and fast (default: the agent's)")

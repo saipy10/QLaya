@@ -40,7 +40,7 @@ afterEach(() => {
 
 describe("resolveRevision", () => {
   it("explicit revision is returned", () => {
-    expect(resolveRevision("convaiinnovations/qlaya", "abc123")).toBe("abc123");
+    expect(resolveRevision("acme/test-model", "abc123")).toBe("abc123");
   });
   it("published repos keep the hub default without an explicit pin", () => {
     for (const repo of Object.keys(PINNED_REVISIONS)) {
@@ -61,16 +61,16 @@ describe("loadNodeBundle pinning", () => {
         ? new StubResponse(cfgFile["rl_agent_config.json"])
         : new StubResponse(null, 404);
     }));
-    const cacheDir = path.join(os.homedir(), ".cache", "qlaya-ts", "hf", "convaiinnovations__laya", "root");
+    const cacheDir = path.join(os.homedir(), ".cache", "qlaya-ts", "hf", "acme__test-model", "root");
     try {
-      const bundle = await loadNodeBundle("convaiinnovations/qlaya");
+      const bundle = await loadNodeBundle("acme/test-model");
       expect(urls[0]).toContain("/resolve/main/");
       expect(bundle.dir).toBe(cacheDir);
       // The hub reports the exact commit served even when no pin was requested.
       expect(bundle.revision).toBe("abc123");
       expect(bundle.cfg.act_costs).toEqual({ a: 0 });
     } finally {
-      fs.rmSync(path.join(os.homedir(), ".cache", "qlaya-ts", "hf", "convaiinnovations__laya"), { recursive: true, force: true });
+      fs.rmSync(path.join(os.homedir(), ".cache", "qlaya-ts", "hf", "acme__test-model"), { recursive: true, force: true });
     }
   });
 
@@ -83,11 +83,11 @@ describe("loadNodeBundle pinning", () => {
         : new StubResponse(null, 404);
     }));
     try {
-      const bundle = await loadNodeBundle("convaiinnovations/qlaya", { revision: "abc123" });
+      const bundle = await loadNodeBundle("acme/test-model", { revision: "abc123" });
       expect(urls[0]).toContain("/resolve/abc123/");
       expect(bundle.dir).toContain(path.join("root", "abc123"));
     } finally {
-      fs.rmSync(path.join(os.homedir(), ".cache", "qlaya-ts", "hf", "convaiinnovations__laya"), { recursive: true, force: true });
+      fs.rmSync(path.join(os.homedir(), ".cache", "qlaya-ts", "hf", "acme__test-model"), { recursive: true, force: true });
     }
   });
 
@@ -97,7 +97,7 @@ describe("loadNodeBundle pinning", () => {
         ? new StubResponse(cfgFile["rl_agent_config.json"])
         : new StubResponse(null, 404);
     }));
-    const bundle = await loadWebBundle("convaiinnovations/qlaya");
+    const bundle = await loadWebBundle("acme/test-model");
     expect(bundle.revision).toBe("abc123");
   });
 

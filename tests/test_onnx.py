@@ -21,7 +21,7 @@ import pytest
 @pytest.mark.skipif(not HAS_ONNX, reason="onnx and onnxruntime are required")
 def test_onnx_numerical_parity():
     """Verify that PyTorch and ONNX agents produce identical outputs for all 3 question types."""
-    model_id = "convaiinnovations/qlaya"
+    model_id = "saipy10/qlaya"
     
     with tempfile.TemporaryDirectory() as tmpdir:
         onnx_path = os.path.join(tmpdir, "qlaya.onnx")

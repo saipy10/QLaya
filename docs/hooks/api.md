@@ -88,7 +88,7 @@ def cache_write(ctx):
     for i, result in enumerate(ctx.results or []):
         CACHE[key(ctx, i)] = result
 
-qlaya.load("convaiinnovations/qlaya", on_predict_start=cache_read, on_predict_end=cache_write)
+qlaya.load("saipy10/qlaya", on_predict_start=cache_read, on_predict_end=cache_write)
 ```
 
 `tests/test_hooks_api.py` execs this block, `examples/hooks/cache.py`, and the caching blocks of
@@ -201,7 +201,7 @@ class Remote:
     async def on_predict_end(self, ctx):
         await ship(ctx.results)
 
-agent = qlaya.load("convaiinnovations/qlaya", hooks=[AsyncHook(Remote())])
+agent = qlaya.load("saipy10/qlaya", hooks=[AsyncHook(Remote())])
 ```
 
 A plain async callable passed to `on_predict_start=` / `on_predict_end=` also works, because
@@ -236,7 +236,7 @@ of objects; `on_predict_start` / `on_predict_end` take a callable or a sequence.
 
 ```python
 Agent(
-    model_id_or_path="convaiinnovations/qlaya",
+    model_id_or_path="saipy10/qlaya",
     device=None, token=None, subfolder=None, fast=False, compile=False,
     hooks=None, on_predict_start=None, on_predict_end=None,
     hooks_raise=True, hooks_concurrent=True, hooks_timeout=None,

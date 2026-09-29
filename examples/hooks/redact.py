@@ -26,7 +26,7 @@ def redact(ctx):
     ctx.states = [scrub(state) for state in ctx.states]
 
 
-agent = qlaya.load("convaiinnovations/qlaya", on_predict_start=redact)
+agent = qlaya.load("saipy10/qlaya", on_predict_start=redact)
 result = agent.system_one(
     "Email jane@example.com or call +1 555 010 9999 about invoice 42.",
     {"urgent": {"type": "noul", "instructions": "Is this urgent?"}},

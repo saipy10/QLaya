@@ -27,7 +27,7 @@ os.environ.setdefault("USE_TF", "0")
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 os.environ.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
 
-BUNDLE = "convaiinnovations/qlaya"
+BUNDLE = "saipy10/qlaya"
 QUESTIONS = {
     "department": {"type": "choice", "instructions": "Which department should handle this request?",
                    "criteria": {"billing": "invoices, payments, refunds",

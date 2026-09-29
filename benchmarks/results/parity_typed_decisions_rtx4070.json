@@ -1,5 +1,5 @@
 {
- "model": "convaiinnovations/qlaya-typed-decisions",
+ "model": "saipy10/qlaya-typed-decisions",
  "subfolder": null,
  "gpu": "NVIDIA GeForce RTX 4070 Ti SUPER",
  "torch": "2.11.0+cu130",

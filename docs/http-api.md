@@ -71,7 +71,7 @@ curl -s localhost:8000/v1/systemone -H 'content-type: application/json' -d '{
 | `model` | no | names a checkpoint; anything else is ignored (see below) |
 
 `model` is accepted so a Jev client can keep sending one. The public Hugging Face ids
-(`convaiinnovations/qlaya-multilingual`, `convaiinnovations/qlaya-typed-decisions`), the checkpoint
+(`saipy10/qlaya-multilingual`, `saipy10/qlaya-typed-decisions`), the checkpoint
 names (`english`, `multilingual`, `typed-decisions`) and their aliases select a checkpoint; any
 other value -- including a Jev id like `jev-1` -- means "let the router choose", and the response's
 `routing` block records what was chosen and why.
@@ -93,7 +93,7 @@ other value -- including a Jev id like `jev-1` -- means "let the router choose",
                 "action": {"act_probability": 1.0}}
   },
   "usage": {"input_tokens": 74, "output_tokens": 0},
-  "routing": {"model": "english", "repo": "convaiinnovations/qlaya", "reason": "English Latin text",
+  "routing": {"model": "english", "repo": "saipy10/qlaya", "reason": "English Latin text",
               "detection": {"script": "latin", "language": "en", "is_english": true, "non_latin_fraction": 0.0}}
 }
 ```

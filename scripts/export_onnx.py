@@ -117,7 +117,7 @@ def export_to_onnx(model_id_or_path: str, output_path: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Export a QLaya model to ONNX format")
-    parser.add_argument("--model", type=str, default="convaiinnovations/qlaya", help="HuggingFace Hub ID or local path")
+    parser.add_argument("--model", type=str, default="saipy10/qlaya", help="HuggingFace Hub ID or local path")
     parser.add_argument("--output", type=str, default="qlaya.onnx", help="Output path for the ONNX file")
     parser.add_argument("--quantize", action="store_true",
                         help="Also write an INT8 weight-only quantized copy (CPU-only speed and "

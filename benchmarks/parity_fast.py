@@ -65,7 +65,7 @@ def probs(agent, b, meta, amp):
 
 
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument("--model", default="convaiinnovations/qlaya"); ap.add_argument("--subfolder", default=None); ap.add_argument("--json", default=None)
+    ap = argparse.ArgumentParser(); ap.add_argument("--model", default="saipy10/qlaya"); ap.add_argument("--subfolder", default=None); ap.add_argument("--json", default=None)
     ap.add_argument("--dtype", choices=["bf16", "fp16"], default=None, help="autocast dtype for stock and fast (default: the agent's)")
     a = ap.parse_args()
     agent = qlaya.load(a.model, subfolder=a.subfolder)

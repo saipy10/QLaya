@@ -4,9 +4,9 @@
 /** Opt-in reviewed commit SHAs of the published checkpoints (mirror of qlaya/revisions.py).
  * They are not applied implicitly, so existing Hub/offline caches keep working. */
 export const PINNED_REVISIONS: Record<string, string> = {
-  "convaiinnovations/qlaya": "55cf4c4ebb4ebe31b2550e8bdf3bd21b99753851",
-  "convaiinnovations/qlaya-multilingual": "e4e9ddf21a7b1903b7acffd8814ad4307bf63a67",
-  "convaiinnovations/qlaya-typed-decisions": "1a793eb568e6718f15941d08f85432581df534e3",
+  "saipy10/qlaya": "55cf4c4ebb4ebe31b2550e8bdf3bd21b99753851",
+  "saipy10/qlaya-multilingual": "e4e9ddf21a7b1903b7acffd8814ad4307bf63a67",
+  "saipy10/qlaya-typed-decisions": "1a793eb568e6718f15941d08f85432581df534e3",
 };
 
 /** Return an explicit revision unchanged; otherwise preserve the Hub default and cache. */

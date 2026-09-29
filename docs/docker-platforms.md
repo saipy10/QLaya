@@ -73,7 +73,7 @@ assert platform.machine() == "aarch64"
 assert torch.cuda.is_available()
 print(torch.__version__, torch.version.cuda, torch.cuda.get_device_name(0))
 print(torch.cuda.get_device_capability(0), torch.cuda.get_arch_list())
-agent = load("convaiinnovations/qlaya", device="cuda")
+agent = load("saipy10/qlaya", device="cuda")
 request = json.loads(Path("/opt/qlaya/examples/request.json").read_text())
 result = agent.predict(request["state"], request["questions"])
 assert next(agent.model.parameters()).device.type == "cuda", "fell back to CPU"

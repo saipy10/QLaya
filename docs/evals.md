@@ -36,13 +36,13 @@ Router, so an ONNX deployment (including an INT8 copy from `scripts/export_onnx.
 gets gated by the same thresholds and baselines as the torch path:
 
 ```bash
-python scripts/export_onnx.py --model convaiinnovations/qlaya --output qlaya.onnx --quantize
+python scripts/export_onnx.py --model saipy10/qlaya --output qlaya.onnx --quantize
 qlaya-evals run data.jsonl --onnx qlaya.int8.onnx --max-ece 0.05
 ```
 
 `--model` names the checkpoint the export came from — a Hub id or local path, not a Router
 short name like `english`, since there is no Router on this path (default
-`convaiinnovations/qlaya`). Its config and tokenizer are loaded from there. The agent serves one checkpoint, so a dataset row
+`saipy10/qlaya`). Its config and tokenizer are loaded from there. The agent serves one checkpoint, so a dataset row
 whose `model` field names a different one fails with a clear error rather than being silently
 answered by the wrong model; `--device` does not apply. `--batch-size` uses the agent's batch
 API when it has one and falls back to one call per state otherwise. The report's `config` block

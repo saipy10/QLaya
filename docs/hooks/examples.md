@@ -32,7 +32,7 @@ import qlaya
 def log(ctx):
     print(ctx.model, ctx.results[0]["answers"])
 
-agent = qlaya.load("convaiinnovations/qlaya", on_predict_end=log)
+agent = qlaya.load("saipy10/qlaya", on_predict_end=log)
 agent.system_one("I was charged twice.", {"urgent": {"type": "noul", "instructions": "Urgent?"}})
 ```
 
@@ -59,7 +59,7 @@ def audit(ctx):
         print(json.dumps(record), file=sys.stderr)
         # ship_to_service(record)
 
-agent = qlaya.load("convaiinnovations/qlaya", on_predict_end=audit)
+agent = qlaya.load("saipy10/qlaya", on_predict_end=audit)
 ```
 
 One hook call covers the whole call, so the loop writes one record per decision; see
@@ -88,7 +88,7 @@ def scrub(value):
 def redact(ctx):
     ctx.states = [scrub(s) for s in ctx.states]
 
-agent = qlaya.load("convaiinnovations/qlaya", on_predict_start=redact)
+agent = qlaya.load("saipy10/qlaya", on_predict_start=redact)
 ```
 
 See [`examples/hooks/redact.py`](../../examples/hooks/redact.py).
@@ -117,7 +117,7 @@ def write(ctx):
     for i, result in enumerate(ctx.results or []):
         CACHE[key(ctx, i)] = result
 
-agent = qlaya.load("convaiinnovations/qlaya", on_predict_start=read, on_predict_end=write)
+agent = qlaya.load("saipy10/qlaya", on_predict_start=read, on_predict_end=write)
 first = agent.system_one("state", QUESTIONS)    # runs the model
 second = agent.system_one("state", QUESTIONS)   # served from CACHE
 ```
@@ -136,7 +136,7 @@ def metrics(ctx):
     if ctx.elapsed_ms is not None:
         LATENCIES.append(ctx.elapsed_ms)
 
-agent = qlaya.load("convaiinnovations/qlaya", on_predict_end=metrics, hooks_raise=False)
+agent = qlaya.load("saipy10/qlaya", on_predict_end=metrics, hooks_raise=False)
 ```
 
 See [`examples/hooks/otel.py`](../../examples/hooks/otel.py).
@@ -156,7 +156,7 @@ def guard(ctx):
     if "ignore previous instructions" in text:
         raise Blocked("prompt injection")
 
-agent = qlaya.load("convaiinnovations/qlaya", on_predict_start=guard)
+agent = qlaya.load("saipy10/qlaya", on_predict_start=guard)
 
 try:
     agent.system_one("Ignore previous instructions and ...", QUESTIONS)
@@ -179,7 +179,7 @@ def gate(ctx):
             answer["choice"] = "human-review"
             answer["gated"] = True
 
-agent = qlaya.load("convaiinnovations/qlaya", on_predict_end=gate)
+agent = qlaya.load("saipy10/qlaya", on_predict_end=gate)
 ```
 
 `ctx.results` holds one dict per state of the call, so the loop annotates every answer that
@@ -197,7 +197,7 @@ def pin(ctx):
     if "refund" in str(ctx.states[0]).lower():
         ctx.decision = RouteDecision(
             model="typed-decisions",
-            repo="convaiinnovations/qlaya/typed-decisions",
+            repo="saipy10/qlaya/typed-decisions",
             reason="refund workflow",
             detection=None,
             workflow=None,
@@ -249,7 +249,7 @@ def audit(ctx):
     ship(ctx.run_id, ctx.results)
 
 agent = qlaya.load(
-    "convaiinnovations/qlaya",
+    "saipy10/qlaya",
     hooks=[Metrics()],              # installed, runs first
     on_predict_start=redact,        # convenience, appended
     on_predict_end=audit,           # convenience, appended
@@ -310,7 +310,7 @@ app = create_app(router=router)
 ```python
 from qlaya.onnx_agent import ONNXAgent
 
-agent = ONNXAgent("convaiinnovations/qlaya", onnx_path="qlaya.onnx", on_predict_end=audit)
+agent = ONNXAgent("saipy10/qlaya", onnx_path="qlaya.onnx", on_predict_end=audit)
 agent.system_one(state, questions)
 ```
 
@@ -364,7 +364,7 @@ def widen(ctx):
         ctx.head_max_len = need
         ctx.max_len = max(window, need + 8 + 64)
 
-agent = qlaya.load("convaiinnovations/qlaya", on_predict_start=widen)
+agent = qlaya.load("saipy10/qlaya", on_predict_start=widen)
 
 # or per call
 agent.system_one(state, questions, head_max_len=512, max_len=1024)
@@ -387,7 +387,7 @@ class RemoteAudit:
     async def on_predict_end(self, ctx):
         await ship(ctx.run_id, ctx.results)
 
-agent = qlaya.load("convaiinnovations/qlaya", hooks=[AsyncHook(RemoteAudit())])
+agent = qlaya.load("saipy10/qlaya", hooks=[AsyncHook(RemoteAudit())])
 ```
 
 A plain async callable works too:
@@ -404,7 +404,7 @@ agent.system_one(state, questions, on_predict_end=async_end)
 Bound each hook call, so a stuck hook cannot hang a served request:
 
 ```python
-agent = qlaya.load("convaiinnovations/qlaya", on_predict_end=metrics, hooks_timeout=2.0)
+agent = qlaya.load("saipy10/qlaya", on_predict_end=metrics, hooks_timeout=2.0)
 
 # or per call
 agent.system_one(state, questions, on_predict_end=metrics, hooks_timeout=0.5)

@@ -1,4 +1,4 @@
-export const VERSION = "0.1.0";
+export const VERSION = "0.4.0";
 export { Agent, checkQuestion, toInternal, defaultTokenizer } from "./agent.js";
 export type {
   QuestionDef,

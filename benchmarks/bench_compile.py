@@ -28,7 +28,7 @@ def questions(n, k):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--model", default="convaiinnovations/qlaya"); ap.add_argument("--subfolder", default=None)
+    ap.add_argument("--model", default="saipy10/qlaya"); ap.add_argument("--subfolder", default=None)
     ap.add_argument("--device", default=None); ap.add_argument("--stock", action="store_true")
     ap.add_argument("--dynamo-backend", default=None, help="torch.compile backend (default inductor)")
     args = ap.parse_args()

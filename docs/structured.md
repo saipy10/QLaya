@@ -17,7 +17,7 @@ schema = {
     },
 }
 
-agent = qlaya.load("convaiinnovations/qlaya")
+agent = qlaya.load("saipy10/qlaya")
 values = agent.decide("I was charged twice, refund me.", schema=schema)
 # {"department": "billing", "urgency": 2, "needs_human": True}
 ```

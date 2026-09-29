@@ -40,7 +40,7 @@ QUESTIONS = {
 
 
 # Direct Agent use.
-agent = qlaya.load("convaiinnovations/qlaya", on_predict_end=on_predict_end)
+agent = qlaya.load("saipy10/qlaya", on_predict_end=on_predict_end)
 agent.system_one("I was charged twice for the same invoice.", QUESTIONS)
 
 # One call, several states: the hook still fires once, and writes one record per decision.

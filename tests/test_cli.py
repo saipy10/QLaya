@@ -20,7 +20,7 @@ def check(name, condition, detail=""):
 
 class StubDecision(dict):
     def __init__(self):
-        super().__init__(model="multilingual", repo="convaiinnovations/qlaya",
+        super().__init__(model="multilingual", repo="saipy10/qlaya",
                          reason="detected non-English text", detection={"lang": "de"}, workflow=None)
 
 

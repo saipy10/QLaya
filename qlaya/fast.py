@@ -1,6 +1,6 @@
 """GPU fast path for qlaya: TileLang fused kernels + 16-bit resident weights + CUDA graphs.
 
-    agent = qlaya.load("convaiinnovations/qlaya", fast=True)      # or agent.accelerate()
+    agent = qlaya.load("saipy10/qlaya", fast=True)      # or agent.accelerate()
 
 Requires CUDA and `pip install qlaya[fast]` (tilelang).  Falls back to the stock forward otherwise.
 """

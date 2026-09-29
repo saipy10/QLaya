@@ -248,7 +248,7 @@ constructor, not on the first request after the chain has paid for every earlier
 
 **It costs the same as writing the questions yourself.** The node adds only the schema plan and
 the projection back, and measured against a hand-built question set on the same checkpoint
-(`convaiinnovations/qlaya`, 6 support tickets, median of 3 runs of 6 `invoke()` calls) the two are
+(`saipy10/qlaya`, 6 support tickets, median of 3 runs of 6 `invoke()` calls) the two are
 within noise of each other and agree on every field:
 
 | Device | Hand-written questions | `QLayaDecision` | Overhead | Decision mismatches |

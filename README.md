@@ -12,9 +12,9 @@
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/15d4Yv__KHeHjshVb-6PRTfqVllxih2S3?usp=sharing)
 [![PyPI version](https://img.shields.io/pypi/v/qlaya.svg)](https://pypi.org/project/qlaya/)
 [![Docs](https://img.shields.io/badge/docs-online-2ea44f)](https://saipy10.github.io/QLaya/)
-[![Hugging Face Model](https://img.shields.io/badge/%F0%9F%A4%97%20Model-convaiinnovations%2Flaya-blue)](https://huggingface.co/convaiinnovations/qlaya)
-[![Multilingual](https://img.shields.io/badge/%F0%9F%A4%97%20Model-qlaya--multilingual-blue)](https://huggingface.co/convaiinnovations/qlaya-multilingual)
-[![Hugging Face Space](https://img.shields.io/badge/%F0%9F%A4%97%20Space-qlaya--demo-orange)](https://huggingface.co/spaces/convaiinnovations/qlaya-demo)
+[![Hugging Face Model](https://img.shields.io/badge/%F0%9F%A4%97%20Model-saipy10%2Flaya-blue)](https://huggingface.co/saipy10/qlaya)
+[![Multilingual](https://img.shields.io/badge/%F0%9F%A4%97%20Model-qlaya--multilingual-blue)](https://huggingface.co/saipy10/qlaya-multilingual)
+[![Hugging Face Space](https://img.shields.io/badge/%F0%9F%A4%97%20Space-qlaya--demo-orange)](https://huggingface.co/spaces/saipy10/qlaya-demo)
 [![Dev.to Article](https://img.shields.io/badge/dev.to-Read%20Article-0A0A0A?logo=devdotto&logoColor=white)](https://dev.to/nandakishor_m_6cc0adfde9f/i-built-non-autoregressive-decision-models-a-year-ago-then-a-frontier-lab-called-it-a-18me)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-nandakishorm-FFDD00?logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/nandakishorm)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -115,9 +115,9 @@ Three checkpoints, and a `Router` that picks between them per request:
 
 | | encoder | params | context | use it for |
 |---|---|---|---|---|
-| [`qlaya`](https://huggingface.co/convaiinnovations/qlaya) | ModernBERT-large | 421M | 512 | English |
-| [`qlaya-multilingual`](https://huggingface.co/convaiinnovations/qlaya-multilingual) | mmBERT-base | 322M | 1024 (up to 8,192) | 100+ languages, 2x faster |
-| [`qlaya-typed-decisions`](https://huggingface.co/convaiinnovations/qlaya-typed-decisions) | ModernBERT-large | 421M | 1024 | the typed-decisions workflows |
+| [`qlaya`](https://huggingface.co/saipy10/qlaya) | ModernBERT-large | 421M | 512 | English |
+| [`qlaya-multilingual`](https://huggingface.co/saipy10/qlaya-multilingual) | mmBERT-base | 322M | 1024 (up to 8,192) | 100+ languages, 2x faster |
+| [`qlaya-typed-decisions`](https://huggingface.co/saipy10/qlaya-typed-decisions) | ModernBERT-large | 421M | 1024 | the typed-decisions workflows |
 
 
 ## Installation details
@@ -341,7 +341,7 @@ Every result carries full routing metadata explaining why the choice was made:
 res_hi["routing"]
 # {
 #   'model': 'multilingual',
-#   'repo': 'convaiinnovations/qlaya/multilingual',
+#   'repo': 'saipy10/qlaya/multilingual',
 #   'reason': 'non-Latin script (devanagari, 100% of letters); the English checkpoint cannot read it'
 # }
 ```
@@ -546,9 +546,9 @@ If you only need a single checkpoint for a dedicated pipeline, you can load mode
 import qlaya
 
 # 1. Load a specific checkpoint directly from the hub
-agent = qlaya.load("convaiinnovations/qlaya")                           # English root
-agent_ml = qlaya.load("convaiinnovations/qlaya", subfolder="multilingual") # 100+ languages
-agent_td = qlaya.load("convaiinnovations/qlaya", subfolder="typed-decisions")
+agent = qlaya.load("saipy10/qlaya")                           # English root
+agent_ml = qlaya.load("saipy10/qlaya", subfolder="multilingual") # 100+ languages
+agent_td = qlaya.load("saipy10/qlaya", subfolder="typed-decisions")
 
 # 2. Run all questions in ONE single forward pass (~35 ms on GPU)
 result = agent.predict(state, questions)
@@ -671,7 +671,7 @@ and every (batch, length) bucket is captured as a CUDA graph, so a one-question 
 ~200 kernel launches from Python.
 
 ```python
-agent = qlaya.load("convaiinnovations/qlaya", fast=True)   # or: agent.accelerate()
+agent = qlaya.load("saipy10/qlaya", fast=True)   # or: agent.accelerate()
 agent.predict(state, questions)                            # same API, same answers
 ```
 
@@ -733,7 +733,7 @@ import qlaya
 def log(ctx):
     print(ctx.model, ctx.results[0]["answers"], ctx.elapsed_ms)
 
-agent = qlaya.load("convaiinnovations/qlaya", on_predict_end=log)
+agent = qlaya.load("saipy10/qlaya", on_predict_end=log)
 agent.system_one("I was charged twice.", {"urgent": {"type": "noul", "instructions": "Urgent?"}})
 ```
 
@@ -762,7 +762,7 @@ schema = {
     },
 }
 
-agent = qlaya.load("convaiinnovations/qlaya")
+agent = qlaya.load("saipy10/qlaya")
 agent.decide("I was charged twice, refund me.", schema=schema)
 # {"department": "billing", "urgency": 2, "needs_human": True}
 ```
@@ -798,7 +798,7 @@ QLaya provides pre-tuned question schemas for immediate production use:
 ```python
 import qlaya
 
-agent = qlaya.load("convaiinnovations/qlaya")
+agent = qlaya.load("saipy10/qlaya")
 
 # 1. Intelligent Model Router (routes to small vs. frontier models)
 routing = agent.predict({"request": "Refactor this service using dependency injection"}, qlaya.router_questions())
@@ -1203,8 +1203,8 @@ Shortlisting the same option set on every request re-embeds option texts that do
 
 ## Live Demo & Resources
 
-* **Hugging Face Model:** [convaiinnovations/qlaya](https://huggingface.co/convaiinnovations/qlaya)
-* **Interactive Web Demo:** [convaiinnovations/qlaya-demo](https://huggingface.co/spaces/convaiinnovations/qlaya-demo)
+* **Hugging Face Model:** [saipy10/qlaya](https://huggingface.co/saipy10/qlaya)
+* **Interactive Web Demo:** [saipy10/qlaya-demo](https://huggingface.co/spaces/saipy10/qlaya-demo)
 * **Engineering Writeup:** [Read the full story on Dev.to](https://dev.to/nandakishor_m_6cc0adfde9f/i-built-non-autoregressive-decision-models-a-year-ago-then-a-frontier-lab-called-it-a-18me)
 
 ---
@@ -1271,4 +1271,4 @@ If QLaya helps your research or products, consider supporting independent resear
 
 ## License
 
-Apache 2.0. Developed by Convai Innovations.
+Apache 2.0. Developed by saipy10.

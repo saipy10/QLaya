@@ -25,10 +25,10 @@ It is set per instance and can be overridden per call (`hooks_raise=` on `predic
 
 ```python
 # strict: a broken audit hook fails the request
-qlaya.load("convaiinnovations/qlaya", on_predict_end=audit, hooks_raise=True)
+qlaya.load("saipy10/qlaya", on_predict_end=audit, hooks_raise=True)
 
 # lenient: telemetry must never take down a served request
-qlaya.load("convaiinnovations/qlaya", on_predict_end=metrics, hooks_raise=False)
+qlaya.load("saipy10/qlaya", on_predict_end=metrics, hooks_raise=False)
 ```
 
 `dispatch` catches `Exception`. Anything that is not an `Exception` (see
@@ -131,7 +131,7 @@ as a hook failure: `TimeoutError` when `hooks_raise=True`, a `RuntimeWarning` wh
 (the default) means no limit.
 
 ```python
-qlaya.load("convaiinnovations/qlaya", on_predict_end=metrics, hooks_timeout=2.0)
+qlaya.load("saipy10/qlaya", on_predict_end=metrics, hooks_timeout=2.0)
 ```
 
 It can be set per instance or overridden per call on `predict_batch`, `system_one`,

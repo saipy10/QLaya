@@ -281,7 +281,7 @@ class Agent(HookRegistry):
 
     def __init__(
         self,
-        model_id_or_path: str = "convaiinnovations/qlaya",
+        model_id_or_path: str = "saipy10/qlaya",
         device: Optional[str] = None,
         token: Optional[str] = None,
         subfolder: Optional[str] = None,
@@ -316,7 +316,7 @@ class Agent(HookRegistry):
         TileLang path replaces the forward that would be compiled.
 
         `subfolder` selects one checkpoint from a repo that bundles several, e.g.
-        `Agent("convaiinnovations/qlaya", subfolder="multilingual")`. Only that subfolder is
+        `Agent("saipy10/qlaya", subfolder="multilingual")`. Only that subfolder is
         downloaded, so bundling does not cost every user the whole family.
 
         `hooks` / `on_predict_start` / `on_predict_end` observe or shape every prediction; see
@@ -377,7 +377,7 @@ class Agent(HookRegistry):
             raise FileNotFoundError(
                 f"Incompatible model: {model_id_or_path!r} does not contain 'rl_agent_config.json'. "
                 f"That file ships with the weights of a QLaya checkpoint, so load one of those "
-                f"(e.g. 'convaiinnovations/qlaya') or a directory your own training run wrote."
+                f"(e.g. 'saipy10/qlaya') or a directory your own training run wrote."
             )
 
         with open(cfg_path) as f:
@@ -1380,7 +1380,7 @@ class Agent(HookRegistry):
 RLAgent = Agent
 
 
-def load(model_id_or_path: str = "convaiinnovations/qlaya", device: Optional[str] = None,
+def load(model_id_or_path: str = "saipy10/qlaya", device: Optional[str] = None,
          token: Optional[str] = None, subfolder: Optional[str] = None, fast: bool = False,
          compile: bool = False,
          revision: Optional[str] = None, expected_sha256: Optional[Dict[str, str]] = None,
@@ -1392,10 +1392,10 @@ def load(model_id_or_path: str = "convaiinnovations/qlaya", device: Optional[str
 
     `subfolder` picks one checkpoint out of a repo that bundles several:
 
-        qlaya.load("convaiinnovations/qlaya")                           # English (repo root)
-        qlaya.load("convaiinnovations/qlaya", subfolder="multilingual")
-        qlaya.load("convaiinnovations/qlaya", fast=True)                # TileLang GPU fast path
-        qlaya.load("convaiinnovations/qlaya", compile=True)              # torch.compile the model
+        qlaya.load("saipy10/qlaya")                           # English (repo root)
+        qlaya.load("saipy10/qlaya", subfolder="multilingual")
+        qlaya.load("saipy10/qlaya", fast=True)                # TileLang GPU fast path
+        qlaya.load("saipy10/qlaya", compile=True)              # torch.compile the model
 
     `revision`/`expected_sha256` pin and verify the downloaded artifacts; see `Agent`.
     `hooks` / `on_predict_start` / `on_predict_end` observe or shape every prediction; see

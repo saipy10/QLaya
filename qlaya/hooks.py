@@ -301,7 +301,7 @@ class AsyncHook:
             async def on_predict_end(self, ctx):
                 await ship(ctx.results)
 
-        agent = qlaya.load("convaiinnovations/qlaya", hooks=[AsyncHook(Remote())])
+        agent = qlaya.load("saipy10/qlaya", hooks=[AsyncHook(Remote())])
 
     Pass `loop` to funnel every coroutine onto a specific loop; otherwise a background loop is
     started on demand when the caller already has one.

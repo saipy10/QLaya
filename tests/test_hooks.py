@@ -295,10 +295,10 @@ check("start failure/end saw the error", str(start_fail_seen[0]), "start boom")
 
 # ctx.model carries the agent's model id
 f = make_fake()
-f.model_id = "convaiinnovations/qlaya"
+f.model_id = "saipy10/qlaya"
 models = []
 f.predict_batch(["s0"], QUESTIONS, on_predict_end=lambda c: models.append(c.model))
-check("context/model is the agent model_id", models, ["convaiinnovations/qlaya"])
+check("context/model is the agent model_id", models, ["saipy10/qlaya"])
 
 
 # --------------------------------------------------------------- empty inputs
@@ -482,7 +482,7 @@ class RouteHook:
 
     def on_route(self, ctx):
         self.decisions.append(dict(ctx.decision))
-        ctx.decision = RouteDecision(model="multilingual", repo="convaiinnovations/qlaya/multilingual",
+        ctx.decision = RouteDecision(model="multilingual", repo="saipy10/qlaya/multilingual",
                                      reason="pinned by hook", detection=None, workflow=None)
 
 
@@ -1066,7 +1066,7 @@ check("concurrency/hooks_concurrent=False serialises", conc.max_active, 1)
 from qlaya.onnx_agent import ONNXAgent  # noqa: E402
 
 o = ONNXAgent.__new__(ONNXAgent)
-o.model_id = "convaiinnovations/qlaya-onnx"
+o.model_id = "saipy10/qlaya-onnx"
 
 
 def _fake_onnx_batch(states, questions, **kwargs):
@@ -1084,7 +1084,7 @@ onnx_out = o.system_one("s", QUESTIONS,
                         on_predict_end=lambda c: (onnx_seen.append("end"), onnx_models.append(c.model)))
 check("onnx/hooks fire", onnx_seen, ["start", "end"])
 check("onnx/returns the inference result", onnx_out["model"], "onnx")
-check("onnx/context model is the agent model_id", onnx_models, ["convaiinnovations/qlaya-onnx"])
+check("onnx/context model is the agent model_id", onnx_models, ["saipy10/qlaya-onnx"])
 
 o = ONNXAgent.__new__(ONNXAgent)
 

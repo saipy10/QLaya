@@ -68,7 +68,7 @@ test("the packed module installs and works in an external ESM TypeScript project
     assert(paths.has(required), `packed artifact is missing ${required}`);
   }
   for (const path of paths) {
-    assert.match(path, /^(README\.md|package\.json|dist\/|scripts\/)/);
+    assert.match(path, /^(README\.md|package\.json|dist\/|scripts\/|LICENSE)/);
   }
   for (const path of paths) {
     if (path.startsWith("dist/") && path.endsWith(".js")) {
@@ -103,7 +103,7 @@ test("the packed module installs and works in an external ESM TypeScript project
   await writeFile(
     join(consumerDir, "runtime.mjs"),
     `import assert from "node:assert/strict";
-import { Agent, VERSION } from "qlaya-ts";
+import { Agent, VERSION } from ${JSON.stringify(packed.name)};
 
 let encoderCalls = 0;
 let headCalls = 0;
@@ -144,7 +144,7 @@ assert.equal(headCalls, 1);
   type QuestionDef,
   type SessionProvider,
   type SystemOneResult,
-} from "qlaya-ts";
+} from ${JSON.stringify(packed.name)};
 
 const provider: SessionProvider = {
   async runEncoder(batch) {

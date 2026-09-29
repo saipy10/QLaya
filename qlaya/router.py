@@ -5,9 +5,9 @@ variants that users can select by name (see QLAYA_MODELS below).
 
 Base checkpoints:
 
-  english          convaiinnovations/qlaya                421M  ModernBERT-large, 512 tokens
-  multilingual     convaiinnovations/qlaya-multilingual   322M  mmBERT-base, 1024 tokens, 100+ langs
-  typed-decisions  convaiinnovations/qlaya-typed-decisions 421M  ModernBERT-large, 1024 tokens
+  english          saipy10/qlaya                421M  ModernBERT-large, 512 tokens
+  multilingual     saipy10/qlaya-multilingual   322M  mmBERT-base, 1024 tokens, 100+ langs
+  typed-decisions  saipy10/qlaya-typed-decisions 421M  ModernBERT-large, 1024 tokens
 
 QLaya model variants (QLAYA_MODELS):
 
@@ -53,7 +53,7 @@ from .hooks import _SKIP_DEFAULTS
 from .lang import analyse
 
 # The hub repo bundles all three checkpoints; only the requested subfolder is downloaded.
-BUNDLE_REPO = "convaiinnovations/qlaya"
+BUNDLE_REPO = "saipy10/qlaya"
 DEFAULT_MODELS = {
     "english": (BUNDLE_REPO, None),
     "multilingual": (BUNDLE_REPO, "multilingual"),
@@ -62,9 +62,9 @@ DEFAULT_MODELS = {
 
 # The same checkpoints also live in their own repos, for anyone who prefers them.
 STANDALONE_MODELS = {
-    "english": "convaiinnovations/qlaya",
-    "multilingual": "convaiinnovations/qlaya-multilingual",
-    "typed-decisions": "convaiinnovations/qlaya-typed-decisions",
+    "english": "saipy10/qlaya",
+    "multilingual": "saipy10/qlaya-multilingual",
+    "typed-decisions": "saipy10/qlaya-typed-decisions",
 }
 
 # ---------------------------------------------------------------------------
@@ -577,7 +577,7 @@ class Router(HookRegistry):
         """Register an already-built Agent under `name` instead of loading a second copy.
 
         Useful when the process has a checkpoint loaded for other reasons: a demo that already
-        built `convaiinnovations/qlaya` can hand it to the router rather than pay for -- and hold
+        built `saipy10/qlaya` can hand it to the router rather than pay for -- and hold
         in memory -- a duplicate 421M parameters.
         """
         key = normalise_name(name)

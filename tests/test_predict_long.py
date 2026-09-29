@@ -88,7 +88,7 @@ def make_real_agent():
     a.cfg = {"max_len": 100, "head_max_len": 20}       # budget = max(64, 100-20-8) = 72
     a.tok = type("Tok", (_Tok,), {"pad_token_id": 0})()
     a._to_internal = staticmethod(Agent._to_internal).__func__
-    a.model_id = "convaiinnovations/qlaya"
+    a.model_id = "saipy10/qlaya"
     a.hooks = []
     a.hooks_raise = True
     a.hooks_timeout = None

@@ -110,8 +110,8 @@ def test_known_model_is_honoured(monkeypatch):
 
 
 @pytest.mark.parametrize(("model", "expected"), [
-    ("convaiinnovations/qlaya-multilingual", "multilingual"),
-    ("convaiinnovations/qlaya-typed-decisions", "typed-decisions"),
+    ("saipy10/qlaya-multilingual", "multilingual"),
+    ("saipy10/qlaya-typed-decisions", "typed-decisions"),
 ])
 def test_published_model_id_is_honoured(monkeypatch, model, expected):
     client, fake = _client(monkeypatch)
@@ -377,9 +377,9 @@ def test_health_reports_cpu_fallback_counters(monkeypatch):
 
 def test_helpers():
     assert _resolve_model("multilingual") == "multilingual"
-    assert _resolve_model("convaiinnovations/qlaya-multilingual") == "multilingual"
-    assert _resolve_model("convaiinnovations/qlaya-typed-decisions") == "typed-decisions"
-    assert _resolve_model("convaiinnovations/qlaya") is None
+    assert _resolve_model("saipy10/qlaya-multilingual") == "multilingual"
+    assert _resolve_model("saipy10/qlaya-typed-decisions") == "typed-decisions"
+    assert _resolve_model("saipy10/qlaya") is None
     assert _resolve_model("jev-1") is None
     assert _resolve_model(None) is None
     import os

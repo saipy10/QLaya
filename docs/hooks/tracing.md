@@ -63,7 +63,7 @@ class Tracer:
         # or close it here if you prefer.
         pass
 
-agent = qlaya.load("convaiinnovations/qlaya", hooks=[Tracer()])
+agent = qlaya.load("saipy10/qlaya", hooks=[Tracer()])
 ```
 
 Because `on_predict_end` always runs, it is the natural place to close a span, and it can see
@@ -131,7 +131,7 @@ class OTelHooks:
             span.set_status(trace.Status(trace.StatusCode.ERROR))
         span.end()
 
-qlaya.load("convaiinnovations/qlaya", hooks=[OTelHooks()], hooks_raise=False)
+qlaya.load("saipy10/qlaya", hooks=[OTelHooks()], hooks_raise=False)
 ```
 
 Set `hooks_raise=False` so a tracer outage never fails a request.

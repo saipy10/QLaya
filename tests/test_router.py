@@ -306,7 +306,7 @@ check("workflow/empty", match_typed_decisions_workflow({}), None)
 for alias, want in [("en", "english"), ("qlaya", "english"), ("multi", "multilingual"),
                     ("ML", "multilingual"), ("typed", "typed-decisions"),
                     ("typed_decisions", "typed-decisions"), ("English", "english"),
-                    ("convaiinnovations/qlaya".split("/")[-1], "english")]:
+                    ("saipy10/qlaya".split("/")[-1], "english")]:
     check("alias/" + alias, normalise_name(alias), want)
 try:
     normalise_name("nope")
@@ -391,17 +391,17 @@ check("route/explicit beats workflow",
 # An auto-detected workflow reports `repo` like every other branch does. It used to hand back the raw
 # (repo, subfolder) spec, which serialises to a JSON list instead of the "repo/subfolder" string.
 check("route/auto workflow repo is a string",
-      r_auto.route({"body": "I was charged twice"}, Q_TD)["repo"], "convaiinnovations/qlaya/typed-decisions")
+      r_auto.route({"body": "I was charged twice"}, Q_TD)["repo"], "saipy10/qlaya/typed-decisions")
 check("route/auto workflow repo matches explicit task",
       r_auto.route({"body": "I was charged twice"}, Q_TD)["repo"],
       r_auto.route({"body": "I was charged twice"}, Q_TD, task="typed_decisions")["repo"])
 check("route/auto workflow repo standalone",
       Router(auto_task_detection=True, standalone_repos=True).route({"body": "x"}, Q_TD)["repo"],
-      "convaiinnovations/qlaya-typed-decisions")
+      "saipy10/qlaya-typed-decisions")
 
 # decision payload shape
 d = r.route({"body": "मुझसे दो बार शुल्क लिया गया"}, Q_GENERIC)
-check("decision/has repo", d["repo"], "convaiinnovations/qlaya/multilingual")
+check("decision/has repo", d["repo"], "saipy10/qlaya/multilingual")
 check("decision/has reason", isinstance(d["reason"], str) and len(d["reason"]) > 0, True)
 check("decision/detection script", d["detection"]["script"], "devanagari")
 check("decision/.model property", d.model, "multilingual")
@@ -840,18 +840,18 @@ check("lru/single-language traffic builds one checkpoint", built, ["english"])
 check("bundle/english is repo root", DEFAULT_MODELS["english"], (BUNDLE_REPO, None))
 check("bundle/multilingual subfolder", DEFAULT_MODELS["multilingual"], (BUNDLE_REPO, "multilingual"))
 check("bundle/typed subfolder", DEFAULT_MODELS["typed-decisions"], (BUNDLE_REPO, "typed-decisions"))
-check("repo_str/root", _repo_str((BUNDLE_REPO, None)), "convaiinnovations/qlaya")
-check("repo_str/sub", _repo_str((BUNDLE_REPO, "multilingual")), "convaiinnovations/qlaya/multilingual")
+check("repo_str/root", _repo_str((BUNDLE_REPO, None)), "saipy10/qlaya")
+check("repo_str/sub", _repo_str((BUNDLE_REPO, "multilingual")), "saipy10/qlaya/multilingual")
 check("repo_str/plain string", _repo_str("some/repo"), "some/repo")
 
 r_bundle = Router()
 r_alone = Router(standalone_repos=True)
 check("bundle/default router uses bundle",
-      r_bundle.route({"m": "मुझसे दो बार"}, Q_GENERIC)["repo"], "convaiinnovations/qlaya/multilingual")
+      r_bundle.route({"m": "मुझसे दो बार"}, Q_GENERIC)["repo"], "saipy10/qlaya/multilingual")
 check("standalone/opt-in uses own repo",
-      r_alone.route({"m": "मुझसे दो बार"}, Q_GENERIC)["repo"], "convaiinnovations/qlaya-multilingual")
+      r_alone.route({"m": "मुझसे दो बार"}, Q_GENERIC)["repo"], "saipy10/qlaya-multilingual")
 check("standalone/english unchanged",
-      r_alone.route({"m": "I was charged twice"}, Q_GENERIC)["repo"], "convaiinnovations/qlaya")
+      r_alone.route({"m": "I was charged twice"}, Q_GENERIC)["repo"], "saipy10/qlaya")
 check("standalone map complete", sorted(STANDALONE_MODELS), sorted(DEFAULT_MODELS))
 # a local-path override must still work (the Space and tests rely on it)
 r_local = Router(models={"english": "/tmp/en", "multilingual": "/tmp/ml"})

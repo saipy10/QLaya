@@ -657,19 +657,34 @@ class ONNXAgent(HookRegistry):
 
                 b = collate_items(per_state_items, self.tok.pad_token_id)
 
-                # Prepare ONNX inputs as numpy arrays
-                ort_inputs = {
-                    "input_ids": b["input_ids"].numpy().astype(np.int64),
-                    "attention_mask": b["attention_mask"].numpy().astype(np.int64),
-                    "marker_pos": b["marker_pos"].numpy().astype(np.int64),
-                    "marker_mask": b["marker_mask"].numpy().astype(bool),
-                    "qtype": b["qtype"].numpy().astype(np.int64),
-                }
-
-                # Run ONNX inference
-                ort_outs = self.session.run(["logits", "act_logits"], ort_inputs)
-                logits = ort_outs[0]
-                act_logits = ort_outs[1]
+                # Prepare ONNX inputs as numpy arrays and execute session
+                n_rows = len(b["input_ids"])
+                if n_rows == 1:
+                    ort_inputs = {
+                        "input_ids": b["input_ids"].numpy().astype(np.int64),
+                        "attention_mask": b["attention_mask"].numpy().astype(np.int64),
+                        "marker_pos": b["marker_pos"].numpy().astype(np.int64),
+                        "marker_mask": b["marker_mask"].numpy().astype(bool),
+                        "qtype": b["qtype"].numpy().astype(np.int64),
+                    }
+                    ort_outs = self.session.run(["logits", "act_logits"], ort_inputs)
+                    logits = ort_outs[0]
+                    act_logits = ort_outs[1]
+                else:
+                    logits_list, act_list = [], []
+                    for r_idx in range(n_rows):
+                        r_inputs = {
+                            "input_ids": b["input_ids"][r_idx:r_idx + 1].numpy().astype(np.int64),
+                            "attention_mask": b["attention_mask"][r_idx:r_idx + 1].numpy().astype(np.int64),
+                            "marker_pos": b["marker_pos"][r_idx:r_idx + 1].numpy().astype(np.int64),
+                            "marker_mask": b["marker_mask"][r_idx:r_idx + 1].numpy().astype(bool),
+                            "qtype": b["qtype"][r_idx:r_idx + 1].numpy().astype(np.int64),
+                        }
+                        outs = self.session.run(["logits", "act_logits"], r_inputs)
+                        logits_list.append(outs[0])
+                        act_list.append(outs[1])
+                    logits = np.concatenate(logits_list, axis=0)
+                    act_logits = np.concatenate(act_list, axis=0)
 
                 # Compute softmax for actions manually in numpy
                 act_exp = np.exp(act_logits - np.max(act_logits, axis=-1, keepdims=True))

@@ -39,7 +39,7 @@ def _capturing_snapshot(captured):
 
 class ResolveRevisionTests(unittest.TestCase):
     def test_explicit_revision_is_returned(self):
-        self.assertEqual(resolve_revision("convaiinnovations/qlaya", "abc123"), "abc123")
+        self.assertEqual(resolve_revision("saipy10/qlaya", "abc123"), "abc123")
 
     def test_published_repos_keep_the_hub_default_without_an_explicit_pin(self):
         for repo in PINNED_REVISIONS:
@@ -105,14 +105,14 @@ class AgentPinningTests(unittest.TestCase):
         captured = {}
         with patch("huggingface_hub.snapshot_download", _capturing_snapshot(captured)):
             with self.assertRaises(_StopLoad):
-                Agent("convaiinnovations/qlaya")
+                Agent("saipy10/qlaya")
         self.assertNotIn("revision", captured)
 
     def test_explicit_revision_overrides_the_pin(self):
         captured = {}
         with patch("huggingface_hub.snapshot_download", _capturing_snapshot(captured)):
             with self.assertRaises(_StopLoad):
-                Agent("convaiinnovations/qlaya", revision="abc123")
+                Agent("saipy10/qlaya", revision="abc123")
         self.assertEqual(captured["revision"], "abc123")
 
     def test_unpinned_repo_gets_no_revision_kwarg(self):

@@ -597,7 +597,7 @@ your workload, particularly with mixed precision. Batching is a **GPU
 throughput win** — on an RTX 5060 Ti, per-decision latency drops from ~10 ms one-by-one to ~1 ms
 batched (measured ~9–10×). On CPU, increasing batch size alone may not speed up inference;
 length grouping can help by reducing the padded work in a mixed-length workload. See the
-[CPU measurements and reproduction commands](research/README.md#length-batching).
+[CPU measurements and benchmarks](BENCHMARKS.md#server-cpu-amd-epyc-9r14-4-cores-linux).
 
 `ONNXAgent.predict_batch(states, questions, batch_size=..., sort_by_length=...)` has the same
 contract, backed by one ONNX Runtime session run per chunk, so an ONNX deployment gets the same
@@ -980,7 +980,7 @@ scheduled workflow evaluates the English checkpoint against the committed baseli
 
 ## Benchmarks
 
-Community diagnostics: [Chinese workplace decisions (Feishu-style)](research/benchmarks/feishu_zh/README.md) · [中文说明](research/benchmarks/feishu_zh/README.zh-CN.md). Includes frozen synthetic cases, archived paired QLaya/Jev responses, and an offline audit; separate from the benchmark suites below. Also [Chinese short-command routing](research/benchmarks/zh_short_commands/README.md) · [中文说明](research/benchmarks/zh_short_commands/README.zh-CN.md): 18 frozen commands and a seven-rung ablation of the documented prompt guidance, which locates the accuracy loss on the four-question path rather than the six-option one.
+Community diagnostics: Chinese workplace decisions (Feishu-style) and Chinese short-command routing are detailed in [**`BENCHMARKS.md`**](BENCHMARKS.md#community-evaluation-zh-cn--zh-tw-external-2026-09-25).
 
 **Full report: [`BENCHMARKS.md`](BENCHMARKS.md)** — every run consolidated, languages and themes, with per-language detail for all 51 languages.
 
@@ -989,8 +989,8 @@ Community diagnostics: [Chinese workplace decisions (Feishu-style)](research/ben
 </p>
 
 All QLaya numbers below are measured. Every model answered byte-identical questions
-(fixed seed) in the same run. Reproduce with
-[`research/scripts/laya_benchmark_colab.ipynb`](research/scripts/laya_benchmark_colab.ipynb) on a T4.
+(fixed seed) in the same run. Reproduce with the
+[Colab Benchmark](https://colab.research.google.com/drive/15d4Yv__KHeHjshVb-6PRTfqVllxih2S3?usp=sharing) on a T4.
 
 ### Speed (Tesla T4, measured)
 

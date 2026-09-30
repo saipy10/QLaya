@@ -90,9 +90,9 @@ export function resolveQLModel(modelId: string): ModelSpec {
 }
 
 
-export type ModelName = "english" | "multilingual" | "typed-decisions";
+export type ModelName = "english" | "multilingual" | "typed-decisions" | string;
 
-const ALIASES: Record<string, ModelName> = {
+const ALIASES: Record<string, string> = {
   en: "english",
   qlaya: "english",
   default: "english",
@@ -105,17 +105,27 @@ const ALIASES: Record<string, ModelName> = {
   decisions: "typed-decisions",
 };
 
-export function normaliseName(name: string): ModelName {
+export function normaliseName(name: string): string {
   const raw = String(name).trim().toLowerCase();
   const key = ALIASES[raw] ?? raw;
-  if (!(key in DEFAULT_MODELS)) {
-    throw new Error(
-      `unknown model ${JSON.stringify(name)}; choose one of ${JSON.stringify(
-        Object.keys(DEFAULT_MODELS).sort(),
-      )} (or an alias: ${JSON.stringify(Object.keys(ALIASES).sort())})`,
-    );
+  if (key in DEFAULT_MODELS) {
+    return key;
   }
-  return key as ModelName;
+  if (name in QLAYA_MODELS) {
+    return name;
+  }
+  const slug = raw.replace(/^qlaya[-_]?/, "").replace(/[-_]/g, "");
+  for (const k of Object.keys(QLAYA_MODELS)) {
+    const candidate = k.toLowerCase().replace(/^qlaya[-_]?/, "").replace(/[-_]/g, "");
+    if (slug === candidate) {
+      return k;
+    }
+  }
+  throw new Error(
+    `unknown model ${JSON.stringify(name)}; choose one of ${JSON.stringify(
+      Object.keys(DEFAULT_MODELS).sort(),
+    )} or ${JSON.stringify(Object.keys(QLAYA_MODELS).sort())} (or an alias: ${JSON.stringify(Object.keys(ALIASES).sort())})`,
+  );
 }
 
 const TYPED_DECISION_WORKFLOWS: Record<string, Set<string>> = {
@@ -172,6 +182,11 @@ export type AgentLoader = (name: ModelName, spec: ModelSpec) => unknown | Promis
 
 export interface RouterOptions {
   models?: Record<string, string | ModelSpec | [string, string | null]>;
+  /** Shorthand for a single QLaya variant name; see {@link resolveQLModel}.
+   * `new Router({ model: "QLaya-UltraFastEdge" })` resolves the variant and
+   * installs it into the default route slot ("english" unless overridden by `default`).
+   */
+  model?: string;
   device?: string | null;
   token?: string | null;
   maxLoaded?: number;
@@ -234,8 +249,11 @@ export class Router extends HookRegistry {
   _order: string[] = []; // least-recently-used first
   private readonly _loading = new Map<string, Promise<unknown>>();
 
-  constructor(opts: RouterOptions = {}) {
+  constructor(opts: RouterOptions | string = {}) {
     super();
+    if (typeof opts === "string") {
+      opts = { model: opts };
+    }
     // Hooks are opt-in; an unset hook list is a no-op. Router-level onPredictStart /
     // onPredictEnd hooks wrap the whole route+infer call and see ctx.decision; see hooks.ts.
     this.hooks = normaliseHooks(opts.hooks, opts.onPredictStart, opts.onPredictEnd);
@@ -244,6 +262,51 @@ export class Router extends HookRegistry {
       ? { ...STANDALONE_MODELS }
       : Object.fromEntries(Object.entries(DEFAULT_MODELS).map(([k, v]) => [k, { ...v }]));
     this.models = Object.fromEntries(Object.entries(base).map(([k, v]) => [k, toSpec(v)]));
+    for (const [k, v] of Object.entries(QLAYA_MODELS)) {
+      this.models[k] = toSpec(v);
+    }
+
+    // Support passing models as a single variant string, e.g. new Router({ models: "QLaya-TopProduction" })
+    if (typeof opts.models === "string") {
+      if (opts.model == null) {
+        opts.model = opts.models;
+      }
+      opts.models = undefined;
+    } else if (opts.models != null && typeof opts.models !== "object") {
+      throw new TypeError(
+        `Router({ models: ... }) expects a Record<string, ModelSpec|string|[string,string|null]>. ` +
+        `To select a single QLaya variant by name use: new Router({ model: ${JSON.stringify(opts.models)} })`,
+      );
+    }
+
+    // Support passing a QLaya variant as default, e.g. new Router({ default: "QLaya-HighSpeedProduction" })
+    let defaultSlot = "english";
+    let defaultIsQL = false;
+    if (opts.default != null) {
+      try {
+        const norm = normaliseName(opts.default);
+        if (norm in QLAYA_MODELS) {
+          defaultIsQL = true;
+          if (opts.model == null) {
+            opts.model = norm;
+          }
+        } else {
+          defaultSlot = norm;
+        }
+      } catch {
+        defaultSlot = normaliseName(opts.default);
+      }
+    }
+
+    // Shorthand: model="QLaya-UltraFastEdge" — resolve via QLAYA_MODELS registry and
+    // install into the default route slot ("english" unless opts.default overrides it).
+    if (opts.model != null) {
+      const resolved = resolveQLModel(opts.model);
+      const normModel = normaliseName(opts.model);
+      this.models[normModel] = resolved;
+      this.models[defaultSlot] = resolved;
+    }
+
     if (opts.models) {
       for (const [k, v] of Object.entries(opts.models)) {
         this.models[normaliseName(k)] = toSpec(v);
@@ -258,7 +321,7 @@ export class Router extends HookRegistry {
       Object.entries(opts.revisions ?? {}).map(([name, value]) => [normaliseName(name), value]),
     ) as Partial<Record<ModelName, string | null>>;
     this.maxLoaded = Math.max(1, Math.trunc(Number(opts.maxLoaded ?? opts.max_loaded ?? 2)));
-    this.default = normaliseName(opts.default ?? "english");
+    this.default = (defaultIsQL ? "english" : normaliseName(opts.default ?? "english")) as ModelName;
     this.autoTaskDetection = Boolean(opts.autoTaskDetection ?? opts.auto_task_detection ?? false);
     this.langGuess = opts.langGuess ?? opts.lang_guess ?? null;
     this.loader = opts.loader ?? null;
@@ -360,7 +423,8 @@ export class Router extends HookRegistry {
   }
 
   async preload(names?: string[]): Promise<this> {
-    const keys = (names ?? Object.keys(this.models)).map((n) => normaliseName(n));
+    const defaultTargets = Object.keys(DEFAULT_MODELS).filter((k) => k in this.models);
+    const keys = (names ?? (defaultTargets.length ? defaultTargets : Object.keys(this.models))).map((n) => normaliseName(n));
     this.maxLoaded = Math.max(this.maxLoaded, new Set([...keys, ...this._agents.keys()]).size);
     for (const n of keys) {
       if (!this._agents.has(n)) await this.load(n);
@@ -426,6 +490,9 @@ export class Router extends HookRegistry {
 
     if (model !== null && model !== undefined) {
       const key = normaliseName(model);
+      if (!(key in this.models)) {
+        this.models[key] = resolveQLModel(model);
+      }
       return {
         model: key,
         repo: repoStr(this.models[key]),

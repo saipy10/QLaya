@@ -29,7 +29,7 @@ from .presets import (
 from .router import DEFAULT_MODELS, QLAYA_MODELS, QLAYA_MODEL_IDS, RouteDecision, Router, resolve_qlaya_model
 from .structured import DecisionResult, decide, decide_batch
 
-__version__ = "0.4.1"
+__version__ = "0.4.2"
 __qlaya_version__ = __version__
 
 # Routing, language detection and email cleaning are pure Python. The torch-backed names are

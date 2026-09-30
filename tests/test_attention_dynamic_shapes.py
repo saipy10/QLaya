@@ -93,7 +93,11 @@ model = DecisionModel(encoder, head_layers=1)
 check("head/DecisionModel uses the dynamic attention",
       isinstance(model.head.layers[0].self_attn, _DynamicMultiheadAttention), True)
 
-print("\n%d passed, %d failed" % (len(PASS), len(FAIL)))
-for f in FAIL:
-    print("  FAIL", f)
-sys.exit(1 if FAIL else 0)
+assert len(FAIL) == 0, f"Failed tests: {FAIL}"
+
+if __name__ == "__main__":
+    print("\n%d passed, %d failed" % (len(PASS), len(FAIL)))
+    for f in FAIL:
+        print("  FAIL", f)
+    sys.exit(1 if FAIL else 0)
+

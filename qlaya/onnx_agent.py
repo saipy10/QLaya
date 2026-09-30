@@ -138,6 +138,22 @@ class ONNXAgent(HookRegistry):
             self.cfg = json.load(f)
 
         if not os.path.exists(onnx_path):
+            candidate = os.path.join(model_dir, onnx_path)
+            if os.path.exists(candidate):
+                onnx_path = candidate
+            else:
+                try:
+                    from huggingface_hub import hf_hub_download
+                    dl_kw = {"token": token or os.environ.get("HF_TOKEN") or None}
+                    if revision:
+                        dl_kw["revision"] = revision
+                    if subfolder:
+                        dl_kw["subfolder"] = subfolder
+                    onnx_path = hf_hub_download(model_id_or_path, onnx_path, **dl_kw)
+                except Exception:
+                    pass
+
+        if not os.path.exists(onnx_path):
             raise FileNotFoundError(
                 f"ONNX model not found at {onnx_path!r}. Please run export_onnx.py first."
             )

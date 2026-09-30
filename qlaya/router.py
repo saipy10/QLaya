@@ -179,10 +179,17 @@ class RouteDecision(dict):
 def normalise_name(name: str) -> str:
     key = str(name).strip().lower()
     key = _ALIASES.get(key, key)
-    if key not in DEFAULT_MODELS:
-        raise ValueError("unknown model %r; choose one of %s (or an alias: %s)"
-                         % (name, sorted(DEFAULT_MODELS), sorted(_ALIASES)))
-    return key
+    if key in DEFAULT_MODELS:
+        return key
+    if name in QLAYA_MODELS:
+        return name
+    slug = key.lstrip("qlaya-").replace("-", "").replace("_", "")
+    for k in QLAYA_MODELS:
+        candidate = k.lower().lstrip("qlaya-").replace("-", "").replace("_", "")
+        if slug == candidate:
+            return k
+    raise ValueError("unknown model %r; choose one of %s, one of %s (or an alias: %s)"
+                     % (name, sorted(DEFAULT_MODELS), sorted(QLAYA_MODELS), sorted(_ALIASES)))
 
 
 def match_typed_decisions_workflow(questions: Dict[str, Any]) -> Optional[str]:
@@ -357,6 +364,12 @@ class Router(HookRegistry):
 
         from qlaya import Router
 
+        # Quickstart — select a quantized QLaya variant by name:
+        r = Router(model="QLaya-UltraFastEdge")       # 6L INT8, ~39 ms edge model
+        r = Router(model="QLaya-TopProduction")        # INT8, ⭐ recommended
+        r = Router(model="QLaya-HighSpeedProduction")  # distil 14L INT8, ~78 ms
+
+        # Multi-language routing (default):
         r = Router()
         r.predict({"message": "Mein Konto wurde zweimal belastet"}, questions)   # -> multilingual
         r.predict({"message": "I was charged twice"}, questions)                 # -> english
@@ -428,7 +441,8 @@ class Router(HookRegistry):
 
     def __init__(
         self,
-        models: Optional[Dict[str, str]] = None,
+        models: Optional[Dict[str, Any]] = None,
+        model: Optional[str] = None,
         device: Optional[str] = None,
         token: Optional[str] = None,
         revision: Optional[str] = None,
@@ -454,7 +468,41 @@ class Router(HookRegistry):
         self.hooks_timeout = None if hooks_timeout is None else validate_timeout(hooks_timeout)
         self._hooks_lock = threading.RLock() if not hooks_concurrent else None
         self._hooks_mutex = threading.Lock()
+        # Allow passing single model variant name as first positional argument (Router("QLaya-TopProduction"))
+        if isinstance(models, str):
+            if model is None:
+                model = models
+            models = None
+        elif models is not None and not isinstance(models, dict):
+            raise TypeError(
+                "Router(models=...) expects a dict mapping checkpoint names to "
+                "(repo, subfolder) tuples or repo strings.  "
+                "To select a single QLaya variant by name use: "
+                "Router(model=%r)" % (models,)
+            )
+
         self.models = dict(STANDALONE_MODELS if standalone_repos else DEFAULT_MODELS)
+        self.models.update(QLAYA_MODELS)
+
+        # Allow passing a QLaya variant name as `default`, e.g. Router(default="QLaya-HighSpeedProduction")
+        default_is_qlaya = False
+        try:
+            norm_default = normalise_name(default)
+            if norm_default in QLAYA_MODELS:
+                default_is_qlaya = True
+                if model is None:
+                    model = norm_default
+        except ValueError:
+            pass
+
+        # Shorthand: model="QLaya-UltraFastEdge" (or inferred from default / positional models)
+        if model is not None:
+            resolved = resolve_qlaya_model(model)          # raises ValueError on bad ID
+            norm_model = normalise_name(model)
+            self.models[norm_model] = resolved
+            default_slot = "english" if default_is_qlaya else normalise_name(default)
+            self.models[default_slot] = resolved
+
         if models:
             self.models.update({normalise_name(k): v for k, v in models.items()})
         self.device = device
@@ -480,7 +528,7 @@ class Router(HookRegistry):
             normalise_name(k): v for k, v in (sha256_digests or {}).items()
         })
         self.max_loaded = max(1, int(max_loaded))
-        self.default = normalise_name(default)
+        self.default = "english" if default_is_qlaya else normalise_name(default)
         self.auto_task_detection = bool(auto_task_detection)
         # An opt-in language hint installed for every request: a code, or a callable taking the
         # state and returning one (or None to abstain). Checked before the built-in detection,
@@ -593,9 +641,11 @@ class Router(HookRegistry):
         A cold load costs seconds; language detection costs microseconds. With every
         checkpoint resident, routing is effectively free -- which is what you want in a
         server or a demo. `max_loaded` is raised to fit both the requested checkpoints and
-        all already-resident agents, so incremental preloading does not evict either.
         """
-        names = [normalise_name(n) for n in (list(self.models) if names is None else names)]
+        if names is None:
+            preload_candidates = [k for k in ("english", "multilingual", "typed-decisions") if k in self.models]
+            names = preload_candidates or list(self.models)
+        names = [normalise_name(n) for n in names]
         with self._lock:
             self.max_loaded = max(self.max_loaded, len(set(names) | set(self._agents)))
         for n in names:
@@ -705,6 +755,8 @@ class Router(HookRegistry):
         """
         if model is not None:
             key = normalise_name(model)
+            if key not in self.models:
+                self.models[key] = resolve_qlaya_model(model)
             return RouteDecision(model=key, repo=_repo_str(self.models[key]), reason="explicit model=%r" % model,
                                  detection=None, workflow=None)
 

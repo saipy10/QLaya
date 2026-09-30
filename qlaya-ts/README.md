@@ -20,17 +20,21 @@ import { Router, QLAYA_MODELS, QLAYA_MODEL_IDS, resolveQLModel } from "qlaya";
 // List all quantized model variants
 console.log(QLAYA_MODEL_IDS);
 
-// Resolve a model spec by QLaya ID
-const spec = resolveQLModel("QLaya-TopProduction");   // ONNX INT8, recommended
-const edgeSpec = resolveQLModel("ultra-fast-edge");    // fuzzy slug, 6L INT8
+// Quickstart — select a quantized QLaya variant directly by name:
+const router = new Router("QLaya-TopProduction");               // ONNX INT8, recommended
+const edge   = new Router("QLaya-UltraFastEdge");               // 6L INT8, ~39 ms edge
+const small  = new Router("QLaya-UltraSmallStorage");           // 6L INT4, 142 MB
 
-// Use with Router
-const router = new Router();
-await router.load("QLaya-TopProduction");
+// Resolve a model spec by QLaya ID manually:
+const spec     = resolveQLModel("QLaya-TopProduction");  // { repo, subfolder }
+const edgeSpec = resolveQLModel("ultra-fast-edge");       // fuzzy slug, 6L INT8
 
-const result = await router.predict({
-  text: "I was charged twice, please refund",
-});
+// Default multi-language routing:
+const defaultRouter = new Router();
+const result = await defaultRouter.predict(
+  { text: "I was charged twice, please refund" },
+  questions,
+);
 console.log(result);
 ```
 

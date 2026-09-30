@@ -63,18 +63,26 @@ Evaluating decision accuracy across 51 languages (MASSIVE benchmark, 20-way inte
 
 ## Installation
 
+### Python
 ```bash
-pip install qlaya
+pip install -U qlaya
 ```
 
 Optional dependencies:
-- `pip install qlaya[onnx]` — ONNX Runtime execution for quantized edge models.
+- `pip install qlaya[onnx]` — ONNX Runtime execution for local quantized models.
 - `pip install qlaya[serve]` — FastAPI HTTP server.
 - `pip install qlaya[mcp]` — Model Context Protocol stdio server.
 
+### TypeScript / Node.js
+```bash
+npm install qlaya
+```
+
+> **Caution:** Do not name your Python test scripts `qlaya.py`. Python's module resolution prioritises files in the current directory over installed packages, causing `import qlaya` to import your own script and producing confusing errors like `AttributeError: module 'qlaya' has no attribute 'Router'`.
+
 ---
 
-## Quickstart
+## Quickstart: Python
 
 ### 1. Inspect Available Model Variants
 
@@ -88,7 +96,7 @@ print(qlaya.QLAYA_MODEL_IDS)
 #  'QLaya-UltraSmallStorage']
 ```
 
-### 2. Fast Routing (Pure Python, Zero-Weight Overhead)
+### 2. Fast Routing (Pure Python, Microsecond Zero-Weight Overhead)
 
 ```python
 import qlaya
@@ -106,19 +114,56 @@ print(router.route("ग्राहक से दो बार शुल्क �
 # -> RouteDecision(model='multilingual', reason='non-Latin script (devanagari, 100% of letters)...')
 ```
 
-### 3. Deploying a Quantized Variant
+### 3. Deploying a Quantized Variant Seamlessly
+
+You can select any variant either by name, keyword, or as the default:
 
 ```python
 import qlaya
 
-# Run recommended INT8 production model:
-router = qlaya.Router(model="QLaya-TopProduction")
+# Positional variant selection (top recommended INT8 production model):
+router = qlaya.Router("QLaya-TopProduction")
 
-# Or deploy the sub-40ms edge model:
+# Or via model keyword argument (e.g. ultra-fast sub-40ms edge model):
 edge_router = qlaya.Router(model="QLaya-UltraFastEdge")
+
+# Or set high-concurrency 14L INT8 student as default route:
+distil_router = qlaya.Router(default="QLaya-HighSpeedProduction")
 ```
 
-### 4. Decision Questions and Confidence Scoring
+### 4. Running ONNX Quantized Model Inference
+
+```python
+from qlaya.onnx_agent import ONNXAgent
+
+# Automatically downloads model weights from Hugging Face hub or uses local files:
+agent = ONNXAgent("saipy10/qlaya", onnx_path="qlaya.int8.onnx")
+
+state = "I was charged twice for my subscription this month. Please refund."
+questions = {
+    "intent": {
+        "type": "categorical",
+        "instructions": "Route this ticket to the appropriate department.",
+        "criteria": {
+            "billing": "charges, invoices, payment, refunds",
+            "support": "technical issues, bug reports, how-to",
+            "sales": "upgrades, enterprise plans, pricing",
+        },
+    },
+    "urgency": {
+        "type": "score",
+        "instructions": "How urgent is this customer issue?",
+        "criteria": ["low", "normal", "high", "critical"],
+    },
+}
+
+result = agent.predict(state, questions)
+print("Intent:", result["intent"]["answer"])          # billing
+print("Confidence:", result["intent"]["confidence"])  # e.g. 0.96
+print("Urgency:", result["urgency"]["answer"])        # high
+```
+
+### 5. Calibrated Confidence Scoring Metrics
 
 ```python
 import numpy as np
@@ -134,7 +179,7 @@ entropy_conf = qlaya.confidence_from_probs(probs, k=len(probs))
 print(f"Entropy sharpness: {entropy_conf:.4f}")
 ```
 
-### 5. Email Text Cleaning
+### 6. Email Text Cleaning & Sanitization
 
 ```python
 import qlaya
@@ -150,6 +195,27 @@ print(cleaned)
 # Output:
 # Hi Support,
 # I need help with my account.
+```
+
+---
+
+## Quickstart: TypeScript / Node.js
+
+```typescript
+import { Router, QLAYA_MODELS, QLAYA_MODEL_IDS, resolveQLModel } from "qlaya";
+
+// Quickstart — select a quantized variant directly:
+const router = new Router("QLaya-TopProduction");
+const edgeRouter = new Router({ model: "QLaya-UltraFastEdge" });
+
+// Pure zero-latency language/script routing:
+const decision = router.route("Refund my duplicate order please");
+console.log(decision);
+// { model: 'english', repo: 'saipy10/qlaya/qlaya-int8', reason: 'English Latin text' }
+
+// Multilingual detection:
+console.log(router.route("お客様は二重に請求されたため返金を希望しています。"));
+// { model: 'multilingual', ... }
 ```
 
 ---

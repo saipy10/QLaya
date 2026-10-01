@@ -7,9 +7,9 @@ Quick start::
     router = qlaya.Router()
 
     # Use a specific QLaya quantized variant from benchmark_results.json:
-    router = qlaya.Router(model="QLaya-TopProduction")   # ONNX INT8, recommended
-    router = qlaya.Router(model="QLaya-UltraFastEdge")   # 6L INT8, 38 ms edge model
-    router = qlaya.Router(model="QLaya-UltraSmallStorage") # 6L INT4, 142 MB
+    router = qlaya.Router(model="QLaya-int8")       # ONNX INT8, recommended
+    router = qlaya.Router(model="QLaya-6L-int8")    # 6L INT8, 38 ms edge model
+    router = qlaya.Router(model="QLaya-6L-int4")    # 6L INT4, 142 MB
 
     # List all available QLaya model variants:
     print(qlaya.QLAYA_MODEL_IDS)
@@ -26,10 +26,20 @@ from .presets import (
     router_questions,
     triage_questions,
 )
-from .router import DEFAULT_MODELS, QLAYA_MODELS, QLAYA_MODEL_IDS, RouteDecision, Router, resolve_qlaya_model
+from .router import (
+    DEFAULT_MODELS,
+    QLAYA_MODELS,
+    QLAYA_MODEL_IDS,
+    QLAYA_PRIMARY_MODEL_IDS,
+    QLAYA_ONNX_FILES,
+    RouteDecision,
+    Router,
+    resolve_qlaya_model,
+    resolve_onnx_filename,
+)
 from .structured import DecisionResult, decide, decide_batch
 
-__version__ = "0.4.2"
+__version__ = "0.4.3"
 __qlaya_version__ = __version__
 
 # Routing, language detection and email cleaning are pure Python. The torch-backed names are
@@ -97,7 +107,10 @@ __all__ = [
     # QLaya model registry
     "QLAYA_MODELS",
     "QLAYA_MODEL_IDS",
+    "QLAYA_PRIMARY_MODEL_IDS",
+    "QLAYA_ONNX_FILES",
     "resolve_qlaya_model",
+    "resolve_onnx_filename",
     # Shortlist
     "shortlist_choice",
     "predict_shortlist",

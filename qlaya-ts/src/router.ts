@@ -46,29 +46,73 @@ export const STANDALONE_MODELS: Record<string, string> = {
  * ```
  */
 export const QLAYA_MODELS: Record<string, ModelSpec> = {
-  // Baseline / quantized teacher checkpoints
+  // Baseline / quantized teacher checkpoints (421M, ModernBERT)
+  "QLaya-fp32":                  { repo: BUNDLE_REPO, subfolder: "qlaya-fp32" },
+  "QLaya-fp16":                  { repo: BUNDLE_REPO, subfolder: "qlaya-fp16" },
+  "QLaya-int8":                  { repo: BUNDLE_REPO, subfolder: "qlaya-int8" },     // ⭐ recommended
+  "QLaya-int4-b32":              { repo: BUNDLE_REPO, subfolder: "qlaya-int4-b32" },
+  "QLaya-int4-b64":              { repo: BUNDLE_REPO, subfolder: "qlaya-int4-b64" },
+  // Distilled student checkpoints (14L = 244M params, 6L = 143M params)
+  "QLaya-14L-fp32":              { repo: BUNDLE_REPO, subfolder: "qlaya-distil-14l-fp32" },
+  "QLaya-14L-int8":              { repo: BUNDLE_REPO, subfolder: "qlaya-distil-14l-int8" },
+  "QLaya-6L-fp32":               { repo: BUNDLE_REPO, subfolder: "qlaya-distil-6l-fp32" },
+  "QLaya-6L-int8":               { repo: BUNDLE_REPO, subfolder: "qlaya-distil-6l-int8" },
+  "QLaya-6L-int4":               { repo: BUNDLE_REPO, subfolder: "qlaya-distil-6l-int4" },
+  // Backward-compatible legacy aliases
   "QLaya-OriginalBaseline":      { repo: BUNDLE_REPO, subfolder: "qlaya-fp32" },
   "QLaya-Balanced":              { repo: BUNDLE_REPO, subfolder: "qlaya-fp16" },
-  "QLaya-TopProduction":         { repo: BUNDLE_REPO, subfolder: "qlaya-int8" },     // ⭐ recommended
+  "QLaya-TopProduction":         { repo: BUNDLE_REPO, subfolder: "qlaya-int8" },
   "QLaya-SlowCPU":               { repo: BUNDLE_REPO, subfolder: "qlaya-int4-b32" },
   "QLaya-DegradedAccuracy":      { repo: BUNDLE_REPO, subfolder: "qlaya-int4-b64" },
-  // Distilled student checkpoints
   "QLaya-IntermediateStudent":   { repo: BUNDLE_REPO, subfolder: "qlaya-distil-14l-fp32" },
   "QLaya-HighSpeedProduction":   { repo: BUNDLE_REPO, subfolder: "qlaya-distil-14l-int8" },
   "QLaya-CompactStudent":        { repo: BUNDLE_REPO, subfolder: "qlaya-distil-6l-fp32" },
   "QLaya-UltraFastEdge":         { repo: BUNDLE_REPO, subfolder: "qlaya-distil-6l-int8" },
   "QLaya-UltraSmallStorage":     { repo: BUNDLE_REPO, subfolder: "qlaya-distil-6l-int4" },
+  "QLaya-distil-14l-fp32":       { repo: BUNDLE_REPO, subfolder: "qlaya-distil-14l-fp32" },
+  "QLaya-distil-14l-int8":       { repo: BUNDLE_REPO, subfolder: "qlaya-distil-14l-int8" },
+  "QLaya-distil-6l-fp32":        { repo: BUNDLE_REPO, subfolder: "qlaya-distil-6l-fp32" },
+  "QLaya-distil-6l-int8":        { repo: BUNDLE_REPO, subfolder: "qlaya-distil-6l-int8" },
+  "QLaya-distil-6l-int4":        { repo: BUNDLE_REPO, subfolder: "qlaya-distil-6l-int4" },
 };
 
-/** Sorted list of all QLaya model IDs for validation / display. */
-export const QLAYA_MODEL_IDS: string[] = Object.keys(QLAYA_MODELS).sort();
+/** Primary canonical QLaya model IDs for validation / display. */
+export const QLAYA_PRIMARY_MODEL_IDS: string[] = [
+  "QLaya-fp32",
+  "QLaya-fp16",
+  "QLaya-int8",
+  "QLaya-int4-b32",
+  "QLaya-int4-b64",
+  "QLaya-14L-fp32",
+  "QLaya-14L-int8",
+  "QLaya-6L-fp32",
+  "QLaya-6L-int8",
+  "QLaya-6L-int4",
+];
+
+export const QLAYA_MODEL_IDS: string[] = QLAYA_PRIMARY_MODEL_IDS;
+
+/** Map each QLaya model ID to its actual ONNX filename on Hugging Face hub. */
+export const QLAYA_ONNX_FILES: Record<string, string> = {
+  "QLaya-fp32":     "qlaya.fp32.onnx",
+  "QLaya-fp16":     "qlaya.fp16.onnx",
+  "QLaya-int8":     "qlaya.int8.onnx",
+  "QLaya-int4-b32": "qlaya.int4_b32.onnx",
+  "QLaya-int4-b64": "qlaya.int4_b64.onnx",
+  "QLaya-14L-fp32": "distil_qlaya_14l.fp32.onnx",
+  "QLaya-14L-int8": "distil_qlaya_14l.int8.onnx",
+  "QLaya-6L-fp32":  "distil_qlaya_6l.fp32.onnx",
+  "QLaya-6L-int8":  "distil_qlaya_6l.int8.onnx",
+  "QLaya-6L-int4":  "distil_qlaya_6l.int4.onnx",
+};
 
 /**
  * Resolve a QLaya model ID or standard model name to a {@link ModelSpec}.
  *
  * Accepts:
- *  - Any key from {@link QLAYA_MODELS} (e.g. `"QLaya-TopProduction"`)
- *  - Case-insensitive slugs without the QLaya- prefix (e.g. `"topproduction"`)
+ *  - Any key from {@link QLAYA_MODELS} (e.g. `"QLaya-int8"`, `"QLaya-14L-int8"`)
+ *  - Legacy keys (e.g. `"QLaya-TopProduction"`, `"QLaya-UltraFastEdge"`)
+ *  - Case-insensitive slugs without the QLaya- prefix (e.g. `"int8"`, `"topproduction"`)
  *  - Standard model names from {@link DEFAULT_MODELS} (`"english"`, `"multilingual"`, `"typed-decisions"`)
  *
  * @throws Error with a helpful message if the ID is unrecognised.
@@ -84,7 +128,7 @@ export function resolveQLModel(modelId: string): ModelSpec {
   }
   throw new Error(
     `Unknown QLaya model ${JSON.stringify(modelId)}.\n` +
-    `Available QLaya variants:\n  ${QLAYA_MODEL_IDS.join("\n  ")}\n` +
+    `Available QLaya variants:\n  ${QLAYA_PRIMARY_MODEL_IDS.join("\n  ")}\n` +
     `Standard checkpoints: ${Object.keys(DEFAULT_MODELS).join(", ")}`,
   );
 }

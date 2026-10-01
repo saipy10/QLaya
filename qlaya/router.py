@@ -11,16 +11,16 @@ Base checkpoints:
 
 QLaya model variants (QLAYA_MODELS):
 
-  QLaya-OriginalBaseline   — Uncompressed FP32 teacher            (421M, 1685 MB, ~382 ms)
-  QLaya-Balanced           — FP16/BF16 half-precision             (421M,  843 MB, ~368 ms)
-  QLaya-TopProduction      — ONNX INT8 per-channel  ⭐ recommended (421M,  572 MB, ~135 ms)
-  QLaya-SlowCPU            — ONNX INT4 block-32                   (421M,  441 MB, ~681 ms)
-  QLaya-DegradedAccuracy   — ONNX INT4 block-64                   (421M,  420 MB, 1048 ms)
-  QLaya-IntermediateStudent — Distilled 14L FP32                  (244M,  978 MB, ~195 ms)
-  QLaya-HighSpeedProduction — Distilled 14L INT8                  (244M,  333 MB,  ~78 ms)
-  QLaya-CompactStudent     — Distilled  6L FP32                   (143M,  574 MB,  ~94 ms)
-  QLaya-UltraFastEdge      — Distilled  6L INT8                   (143M,  195 MB,  ~39 ms)
-  QLaya-UltraSmallStorage  — Distilled  6L INT4                   (143M,  142 MB, ~113 ms)
+  QLaya-fp32               — Uncompressed FP32 teacher            (421M, 1685 MB, ~382 ms)
+  QLaya-fp16               — FP16/BF16 half-precision             (421M,  843 MB, ~368 ms)
+  QLaya-int8               — ONNX INT8 per-channel  ⭐ recommended (421M,  572 MB, ~135 ms)
+  QLaya-int4-b32           — ONNX INT4 block-32                   (421M,  441 MB, ~681 ms)
+  QLaya-int4-b64           — ONNX INT4 block-64                   (421M,  420 MB, 1048 ms)
+  QLaya-14L-fp32           — Distilled 14L FP32                  (244M,  978 MB, ~195 ms)
+  QLaya-14L-int8           — Distilled 14L INT8  ⚡ high-speed    (244M,  333 MB,  ~78 ms)
+  QLaya-6L-fp32            — Distilled  6L FP32                   (143M,  574 MB,  ~94 ms)
+  QLaya-6L-int8            — Distilled  6L INT8  🚀 ultra-fast    (143M,  195 MB,  ~39 ms)
+  QLaya-6L-int4            — Distilled  6L INT4  💾 minimal       (143M,  142 MB, ~113 ms)
 
 Why routing is worth it -- accuracy by language family:
 
@@ -72,26 +72,63 @@ STANDALONE_MODELS = {
 # Each key is the user-facing QLaya model ID (from benchmark_results.json).
 # Each value is (hf_repo_or_path, subfolder_or_None)  -- same format as
 # DEFAULT_MODELS so Router / Agent loading accepts them unchanged.
-# Placeholder subfolder tags (e.g. "qlaya-int8") will be replaced once the
-# quantized checkpoints are pushed to the HuggingFace hub.
 # ---------------------------------------------------------------------------
 QLAYA_MODELS: Dict[str, tuple] = {
-    # --- Baseline / quantized teacher checkpoints ---
-    "QLaya-OriginalBaseline": (BUNDLE_REPO, "qlaya-fp32"),
-    "QLaya-Balanced":         (BUNDLE_REPO, "qlaya-fp16"),
-    "QLaya-TopProduction":    (BUNDLE_REPO, "qlaya-int8"),       # ⭐ recommended
-    "QLaya-SlowCPU":          (BUNDLE_REPO, "qlaya-int4-b32"),
-    "QLaya-DegradedAccuracy": (BUNDLE_REPO, "qlaya-int4-b64"),
-    # --- Distilled student checkpoints ---
-    "QLaya-IntermediateStudent":  (BUNDLE_REPO, "qlaya-distil-14l-fp32"),
-    "QLaya-HighSpeedProduction":  (BUNDLE_REPO, "qlaya-distil-14l-int8"),
-    "QLaya-CompactStudent":       (BUNDLE_REPO, "qlaya-distil-6l-fp32"),
-    "QLaya-UltraFastEdge":        (BUNDLE_REPO, "qlaya-distil-6l-int8"),
-    "QLaya-UltraSmallStorage":    (BUNDLE_REPO, "qlaya-distil-6l-int4"),
+    # --- Baseline / quantized teacher checkpoints (421M, ModernBERT) ---
+    "QLaya-fp32":             (BUNDLE_REPO, "qlaya-fp32"),
+    "QLaya-fp16":             (BUNDLE_REPO, "qlaya-fp16"),
+    "QLaya-int8":             (BUNDLE_REPO, "qlaya-int8"),                 # ⭐ recommended
+    "QLaya-int4-b32":         (BUNDLE_REPO, "qlaya-int4-b32"),
+    "QLaya-int4-b64":         (BUNDLE_REPO, "qlaya-int4-b64"),
+    # --- Distilled student checkpoints (14L = 244M params, 6L = 143M params) ---
+    "QLaya-14L-fp32":         (BUNDLE_REPO, "qlaya-distil-14l-fp32"),
+    "QLaya-14L-int8":         (BUNDLE_REPO, "qlaya-distil-14l-int8"),
+    "QLaya-6L-fp32":          (BUNDLE_REPO, "qlaya-distil-6l-fp32"),
+    "QLaya-6L-int8":          (BUNDLE_REPO, "qlaya-distil-6l-int8"),
+    "QLaya-6L-int4":          (BUNDLE_REPO, "qlaya-distil-6l-int4"),
 }
 
-# Convenience set of all valid QLaya IDs for validation / help text.
-QLAYA_MODEL_IDS: list = sorted(QLAYA_MODELS.keys())
+# Primary canonical IDs for display, help text, and listings
+QLAYA_PRIMARY_MODEL_IDS: list = list(QLAYA_MODELS.keys())
+QLAYA_MODEL_IDS: list = list(QLAYA_PRIMARY_MODEL_IDS)
+
+# Map each QLaya model ID to its actual .onnx filename in the Hub repo
+QLAYA_ONNX_FILES: Dict[str, str] = {
+    "QLaya-fp32":             "qlaya.fp32.onnx",
+    "QLaya-fp16":             "qlaya.fp16.onnx",
+    "QLaya-int8":             "qlaya.int8.onnx",
+    "QLaya-int4-b32":         "qlaya.int4_b32.onnx",
+    "QLaya-int4-b64":         "qlaya.int4_b64.onnx",
+    "QLaya-14L-fp32":         "distil_qlaya_14l.fp32.onnx",
+    "QLaya-14L-int8":         "distil_qlaya_14l.int8.onnx",
+    "QLaya-6L-fp32":          "distil_qlaya_6l.fp32.onnx",
+    "QLaya-6L-int8":          "distil_qlaya_6l.int8.onnx",
+    "QLaya-6L-int4":          "distil_qlaya_6l.int4.onnx",
+}
+
+# Backward-compatible model aliases:
+_LEGACY_MODEL_MAP: Dict[str, str] = {
+    "QLaya-OriginalBaseline":    "QLaya-fp32",
+    "QLaya-Balanced":            "QLaya-fp16",
+    "QLaya-TopProduction":       "QLaya-int8",
+    "QLaya-SlowCPU":             "QLaya-int4-b32",
+    "QLaya-DegradedAccuracy":    "QLaya-int4-b64",
+    "QLaya-IntermediateStudent": "QLaya-14L-fp32",
+    "QLaya-HighSpeedProduction": "QLaya-14L-int8",
+    "QLaya-CompactStudent":      "QLaya-6L-fp32",
+    "QLaya-UltraFastEdge":       "QLaya-6L-int8",
+    "QLaya-UltraSmallStorage":   "QLaya-6L-int4",
+    # Intermediate distilled slugs
+    "QLaya-distil-14l-fp32":     "QLaya-14L-fp32",
+    "QLaya-distil-14l-int8":     "QLaya-14L-int8",
+    "QLaya-distil-6l-fp32":      "QLaya-6L-fp32",
+    "QLaya-distil-6l-int8":      "QLaya-6L-int8",
+    "QLaya-distil-6l-int4":      "QLaya-6L-int4",
+}
+
+for _legacy_k, _canon_k in _LEGACY_MODEL_MAP.items():
+    QLAYA_MODELS[_legacy_k] = QLAYA_MODELS[_canon_k]
+    QLAYA_ONNX_FILES[_legacy_k] = QLAYA_ONNX_FILES[_canon_k]
 
 
 def _repo_str(spec):
@@ -108,12 +145,29 @@ def _split(spec):
     return spec, None
 
 
+def resolve_onnx_filename(name_or_file: str) -> str:
+    """Resolve a model ID, legacy name, or onnx filename to its .onnx filename in saipy10/qlaya."""
+    if not name_or_file:
+        return "qlaya.int8.onnx"
+    if name_or_file.endswith(".onnx"):
+        return name_or_file
+    if name_or_file in QLAYA_ONNX_FILES:
+        return QLAYA_ONNX_FILES[name_or_file]
+    slug = name_or_file.lower().lstrip("qlaya-").replace("-", "").replace("_", "")
+    for k, fname in QLAYA_ONNX_FILES.items():
+        cand = k.lower().lstrip("qlaya-").replace("-", "").replace("_", "")
+        if slug == cand:
+            return fname
+    return name_or_file
+
+
 def resolve_qlaya_model(model_id: str) -> tuple:
     """Resolve a QLaya model ID to an (hf_repo, subfolder) tuple.
 
     Accepts:
-      - Any key from QLAYA_MODELS (e.g. ``'QLaya-TopProduction'``)
-      - Case-insensitive slugs (e.g. ``'topproduction'``, ``'top-production'``)
+      - Any key from QLAYA_MODELS (e.g. ``'QLaya-int8'``, ``'QLaya-14L-int8'``)
+      - Legacy keys (e.g. ``'QLaya-TopProduction'``, ``'QLaya-UltraFastEdge'``)
+      - Case-insensitive slugs (e.g. ``'int8'``, ``'topproduction'``, ``'6l-int8'``)
       - The DEFAULT_MODELS keys (``'english'``, ``'multilingual'``, ``'typed-decisions'``)
 
     Raises ``ValueError`` with a helpful list if the ID is not recognised.
@@ -134,7 +188,7 @@ def resolve_qlaya_model(model_id: str) -> tuple:
         "Available QLaya variants:\n  %s\n"
         "Standard checkpoints: %s" % (
             model_id,
-            "\n  ".join(QLAYA_MODEL_IDS),
+            "\n  ".join(QLAYA_PRIMARY_MODEL_IDS),
             ", ".join(DEFAULT_MODELS),
         )
     )
@@ -189,7 +243,7 @@ def normalise_name(name: str) -> str:
         if slug == candidate:
             return k
     raise ValueError("unknown model %r; choose one of %s, one of %s (or an alias: %s)"
-                     % (name, sorted(DEFAULT_MODELS), sorted(QLAYA_MODELS), sorted(_ALIASES)))
+                     % (name, sorted(DEFAULT_MODELS), sorted(QLAYA_PRIMARY_MODEL_IDS), sorted(_ALIASES)))
 
 
 def match_typed_decisions_workflow(questions: Dict[str, Any]) -> Optional[str]:

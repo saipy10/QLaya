@@ -1,4 +1,4 @@
-export const VERSION = "0.4.0";
+export const VERSION = "0.4.3";
 export { Agent, checkQuestion, toInternal, defaultTokenizer } from "./agent.js";
 export type {
   QuestionDef,
@@ -15,7 +15,7 @@ export type {
 } from "./agent.js";
 export { createNodeProvider, createWebProvider, feed, feedHead, loadNodeBundle, loadWebBundle, PINNED_REVISIONS, resolveRevision } from "./providers.js";
 export type { Batch, SessionProvider, ProviderOptions, NodeBundle, WebBundle } from "./providers.js";
-export { Router, normaliseName, DEFAULT_MODELS, QLAYA_MODELS, QLAYA_MODEL_IDS, resolveQLModel } from "./router.js";
+export { Router, normaliseName, DEFAULT_MODELS, QLAYA_MODELS, QLAYA_MODEL_IDS, QLAYA_PRIMARY_MODEL_IDS, QLAYA_ONNX_FILES, resolveQLModel } from "./router.js";
 export type { RoutedResult, RouteDecision, ModelName, ModelSpec } from "./router.js";
 export { shortlistChoice, predictShortlist, embedFnFromAgent, DEFAULT_SHORTLIST_K } from "./shortlist.js";
 export type { EmbedFn, ShortlistMeta } from "./shortlist.js";

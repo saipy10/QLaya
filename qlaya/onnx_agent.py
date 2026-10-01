@@ -137,6 +137,12 @@ class ONNXAgent(HookRegistry):
         with open(cfg_path) as f:
             self.cfg = json.load(f)
 
+        from .router import resolve_onnx_filename
+        if onnx_path is None:
+            onnx_path = resolve_onnx_filename(model_id_or_path)
+        else:
+            onnx_path = resolve_onnx_filename(onnx_path)
+
         if not os.path.exists(onnx_path):
             candidate = os.path.join(model_dir, onnx_path)
             if os.path.exists(candidate):
@@ -150,6 +156,21 @@ class ONNXAgent(HookRegistry):
                     if subfolder:
                         dl_kw["subfolder"] = subfolder
                     onnx_path = hf_hub_download(model_id_or_path, onnx_path, **dl_kw)
+                except Exception:
+                    pass
+
+        # Companion .data file handling for models with external data (e.g. FP32 models)
+        if os.path.exists(onnx_path) and onnx_path.endswith(".fp32.onnx"):
+            data_file = onnx_path + ".data"
+            if not os.path.exists(data_file):
+                try:
+                    from huggingface_hub import hf_hub_download
+                    dl_kw = {"token": token or os.environ.get("HF_TOKEN") or None}
+                    if revision:
+                        dl_kw["revision"] = revision
+                    if subfolder:
+                        dl_kw["subfolder"] = subfolder
+                    hf_hub_download(model_id_or_path, os.path.basename(data_file), local_dir=os.path.dirname(data_file), **dl_kw)
                 except Exception:
                     pass
 

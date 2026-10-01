@@ -57,18 +57,18 @@ Empirical benchmarks run on local Intel Core i5 CPU hardware (10th Gen Ice Lake,
 
 ### 1. Empirical Results Matrix (All Evaluated Configurations)
 
-| Configuration | Compression Method | Params | Disk Size | Storage Δ | CPU Latency (p50) | Choice Acc | Working Set RAM | Production Verdict |
-|---|---|---|---|---|---|---|---|---|
-| **Teacher (FP32)** | Uncompressed ModernBERT | 421M | 1,685.2 MB | Baseline | 382.4 ms | 100% | 1,720 MB | Baseline (heavy on 8GB RAM) |
-| **Teacher (FP16 / BF16)** | Weight Half-Precision | 421M | 842.6 MB | -50.0% | 368.0 ms | 100% | 860 MB | Balanced |
-| **ONNX INT8 (Per-Channel)** | Dynamic Quantization | 421M | **571.9 MB** | **-66.1%** | **134.7 ms** | **100%** | **590 MB** | ⭐ **Top Pick (Zero Loss, 2.8× Speedup)** |
-| **Distil-QLaya 14L (FP32)** | 50% Depth Distillation | 244M | 978.0 MB | -42.0% | 195.2 ms | 100% | 1,010 MB | Intermediate Student |
-| **Distil-QLaya 14L + INT8** | Distilled Student + INT8 | 244M | **332.5 MB** | **-80.3%** | **78.4 ms** | **100%** | **350 MB** | ⚡ **High Concurrency (4.9× Speedup)** |
-| **Distil-QLaya 6L (FP32)** | 6-Layer Compact Student | 143M | 573.6 MB | -66.0% | 94.0 ms | 92% | 605 MB | Compact Student |
-| **Distil-QLaya 6L + INT8** | Distilled Student + INT8 | 143M | **195.2 MB** | **-88.4%** | **38.6 ms** | **92%** | **210 MB** | 🚀 **Ultra-Fast Edge (9.9× Speedup)** |
-| **Distil-QLaya 6L + INT4** | Distilled Student + INT4 | 143M | **142.1 MB** | **-91.6%** | 112.5 ms | 88% | **160 MB** | 💾 **Minimal Storage Footprint** |
-| **ONNX INT4 (Block-32)** | 4-bit Weight Quantization | 421M | 441.2 MB | -73.8% | 680.9 ms | 100% | 460 MB | CPU Software Unpack Penalty |
-| **ONNX INT4 (Block-64)** | 4-bit Weight Quantization | 421M | 419.6 MB | -75.1% | 1,047.6 ms | 75% | 435 MB | Degraded Categorical Accuracy |
+| Configuration | QLaya ID | Compression Method | Params | Disk Size | Storage Δ | CPU Latency (p50) | Choice Acc | Working Set RAM | Production Verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| **Teacher (FP32)** | `QLaya-fp32` | Uncompressed ModernBERT | 421M | 1,685.2 MB | Baseline | 382.4 ms | 100% | 1,720 MB | Baseline (heavy on 8GB RAM) |
+| **Teacher (FP16 / BF16)** | `QLaya-fp16` | Weight Half-Precision | 421M | 842.6 MB | -50.0% | 368.0 ms | 100% | 860 MB | Balanced |
+| **ONNX INT8 (Per-Channel)** | `QLaya-int8` | Dynamic Quantization | 421M | **571.9 MB** | **-66.1%** | **134.7 ms** | **100%** | **590 MB** | ⭐ **Top Pick (Zero Loss, 2.8× Speedup)** |
+| **Distil-QLaya 14L (FP32)** | `QLaya-14L-fp32` | 50% Depth Distillation | 244M | 978.0 MB | -42.0% | 195.2 ms | 100% | 1,010 MB | Intermediate Student |
+| **Distil-QLaya 14L + INT8** | `QLaya-14L-int8` | Distilled Student + INT8 | 244M | **332.5 MB** | **-80.3%** | **78.4 ms** | **100%** | **350 MB** | ⚡ **High Concurrency (4.9× Speedup)** |
+| **Distil-QLaya 6L (FP32)** | `QLaya-6L-fp32` | 6-Layer Compact Student | 143M | 573.6 MB | -66.0% | 94.0 ms | 92% | 605 MB | Compact Student |
+| **Distil-QLaya 6L + INT8** | `QLaya-6L-int8` | Distilled Student + INT8 | 143M | **195.2 MB** | **-88.4%** | **38.6 ms** | **92%** | **210 MB** | 🚀 **Ultra-Fast Edge (9.9× Speedup)** |
+| **Distil-QLaya 6L + INT4** | `QLaya-6L-int4` | Distilled Student + INT4 | 143M | **142.1 MB** | **-91.6%** | 112.5 ms | 88% | **160 MB** | 💾 **Minimal Storage Footprint** |
+| **ONNX INT4 (Block-32)** | `QLaya-int4-b32` | 4-bit Weight Quantization | 421M | 441.2 MB | -73.8% | 680.9 ms | 100% | 460 MB | CPU Software Unpack Penalty |
+| **ONNX INT4 (Block-64)** | `QLaya-int4-b64` | 4-bit Weight Quantization | 421M | 419.6 MB | -75.1% | 1,047.6 ms | 75% | 435 MB | Degraded Categorical Accuracy |
 
 ### 2. Key Findings & Hardware Bottlenecks
 

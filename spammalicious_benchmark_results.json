@@ -1,6 +1,7 @@
 [
   {
-    "id": "QLaya-OriginalBaseline",
+    "id": "QLaya-fp32",
+    "legacy_id": "QLaya-OriginalBaseline",
     "name": "Teacher Model (FP32)",
     "tech": "Uncompressed ModernBERT",
     "file": "qlaya.fp32.onnx",
@@ -31,7 +32,8 @@
     "status": "Original"
   },
   {
-    "id": "QLaya-TopProduction",
+    "id": "QLaya-int8",
+    "legacy_id": "QLaya-TopProduction",
     "name": "ONNX INT8 (Per-Channel)",
     "tech": "Dynamic INT8 Quantization",
     "file": "qlaya.int8.onnx",
@@ -62,7 +64,8 @@
     "status": "Top Recommended"
   },
   {
-    "id": "QLaya-UltraFastEdge",
+    "id": "QLaya-6L-int8",
+    "legacy_id": "QLaya-UltraFastEdge",
     "name": "Distil-QLaya 6L (INT8)",
     "tech": "Distilled Student + INT8",
     "file": "distil_qlaya_6l.int8.onnx",

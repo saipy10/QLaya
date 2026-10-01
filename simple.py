@@ -33,7 +33,7 @@ def main():
     # ---------------------------------------------------------
     print("\n[3] Testing Router")
 
-    router = qlaya.Router(default="QLaya-HighSpeedProduction")
+    router = qlaya.Router(default="QLaya-14L-int8")
 
 
     test_texts = [

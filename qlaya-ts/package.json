@@ -1,6 +1,6 @@
 {
   "name": "qlaya",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "QLaya: fast, local, on-device decision engine with user-selectable quantized model variants (TypeScript runtime)",
   "type": "module",
   "main": "./dist/index.js",

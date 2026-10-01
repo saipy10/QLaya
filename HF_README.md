@@ -35,23 +35,23 @@ All benchmarks were evaluated under identical conditions on local x86 CPU hardwa
 
 | Configuration | QLaya ID | Technique | Params | Disk Size | Size Δ | Latency (p50) | Choice Acc | RAM Working Set | Status / Verdict |
 |---|---|---|---|---|---|---|---|---|---|
-| **Teacher (FP32)** | `QLaya-OriginalBaseline` | Uncompressed ModernBERT | 421M | 1,685.2 MB | Baseline | 382.4 ms | 100.0% | 1,720 MB | Original Baseline (Heavy on RAM) |
-| **Teacher (FP16 / BF16)** | `QLaya-Balanced` | Weight Half-Precision | 421M | 842.6 MB | -50.0% | 368.0 ms | 100.0% | 860 MB | Balanced |
-| **ONNX INT8 (Per-Channel)** | `QLaya-TopProduction` | Dynamic Quantization | 421M | **571.9 MB** | **-66.1%** | **134.7 ms** | **100.0%** | **590 MB** | ⭐ **Top Pick (Zero Loss, 2.8× Speedup)** |
-| **Distil-QLaya 14L (FP32)** | `QLaya-IntermediateStudent` | 50% Depth Distillation | 244M | 978.0 MB | -42.0% | 195.2 ms | 100.0% | 1,010 MB | Intermediate Student |
-| **Distil-QLaya 14L + INT8** | `QLaya-HighSpeedProduction` | Distilled Student + INT8 | 244M | **332.5 MB** | **-80.3%** | **78.4 ms** | **100.0%** | **350 MB** | ⚡ **High Concurrency (4.9× Speedup)** |
-| **Distil-QLaya 6L (FP32)** | `QLaya-CompactStudent` | 6-Layer Compact Student | 143M | 573.6 MB | -66.0% | 94.0 ms | 92.0% | 605 MB | Compact Student |
-| **Distil-QLaya 6L + INT8** | `QLaya-UltraFastEdge` | Distilled Student + INT8 | 143M | **195.2 MB** | **-88.4%** | **38.6 ms** | **92.0%** | **210 MB** | 🚀 **Ultra-Fast Edge (9.9× Speedup)** |
-| **Distil-QLaya 6L + INT4** | `QLaya-UltraSmallStorage` | Distilled Student + INT4 | 143M | **142.1 MB** | **-91.6%** | 112.5 ms | 88.0% | **160 MB** | 💾 **Minimal Storage Footprint** |
-| **ONNX INT4 (Block-32)** | `QLaya-SlowCPU` | 4-bit Weight Quantization | 421M | 441.2 MB | -73.8% | 680.9 ms | 100.0% | 460 MB | CPU Software Unpack Penalty |
-| **ONNX INT4 (Block-64)** | `QLaya-DegradedAccuracy` | 4-bit Weight Quantization | 421M | 419.6 MB | -75.1% | 1,047.6 ms | 75.0% | 435 MB | Degraded Accuracy |
+| **Teacher (FP32)** | `QLaya-fp32` | Uncompressed ModernBERT | 421M | 1,685.2 MB | Baseline | 382.4 ms | 100.0% | 1,720 MB | Original Baseline (Heavy on RAM) |
+| **Teacher (FP16 / BF16)** | `QLaya-fp16` | Weight Half-Precision | 421M | 842.6 MB | -50.0% | 368.0 ms | 100.0% | 860 MB | Balanced |
+| **ONNX INT8 (Per-Channel)** | `QLaya-int8` | Dynamic Quantization | 421M | **571.9 MB** | **-66.1%** | **134.7 ms** | **100.0%** | **590 MB** | ⭐ **Top Pick (Zero Loss, 2.8× Speedup)** |
+| **Distil-QLaya 14L (FP32)** | `QLaya-14L-fp32` | 50% Depth Distillation | 244M | 978.0 MB | -42.0% | 195.2 ms | 100.0% | 1,010 MB | Intermediate Student |
+| **Distil-QLaya 14L + INT8** | `QLaya-14L-int8` | Distilled Student + INT8 | 244M | **332.5 MB** | **-80.3%** | **78.4 ms** | **100.0%** | **350 MB** | ⚡ **High Concurrency (4.9× Speedup)** |
+| **Distil-QLaya 6L (FP32)** | `QLaya-6L-fp32` | 6-Layer Compact Student | 143M | 573.6 MB | -66.0% | 94.0 ms | 92.0% | 605 MB | Compact Student |
+| **Distil-QLaya 6L + INT8** | `QLaya-6L-int8` | Distilled Student + INT8 | 143M | **195.2 MB** | **-88.4%** | **38.6 ms** | **92.0%** | **210 MB** | 🚀 **Ultra-Fast Edge (9.9× Speedup)** |
+| **Distil-QLaya 6L + INT4** | `QLaya-6L-int4` | Distilled Student + INT4 | 143M | **142.1 MB** | **-91.6%** | 112.5 ms | 88.0% | **160 MB** | 💾 **Minimal Storage Footprint** |
+| **ONNX INT4 (Block-32)** | `QLaya-int4-b32` | 4-bit Weight Quantization | 421M | 441.2 MB | -73.8% | 680.9 ms | 100.0% | 460 MB | CPU Software Unpack Penalty |
+| **ONNX INT4 (Block-64)** | `QLaya-int4-b64` | 4-bit Weight Quantization | 421M | 419.6 MB | -75.1% | 1,047.6 ms | 75.0% | 435 MB | Degraded Accuracy |
 
 ---
 
 ## Key Observations & Hardware Insights
 
 ### 1. Hardware Vector Acceleration (AVX-512 VNNI)
-Intel 10th-Gen+ and modern server processors feature native hardware vector dot-product instructions (`vpdpbusd`) for 8-bit integers. ONNX Runtime leverages these execution units directly, delivering a **2.8× speedup (134.7 ms vs 382.4 ms)** with **zero loss in categorical accuracy or calibration**. For general server production, `QLaya-TopProduction` represents the optimal configuration.
+Intel 10th-Gen+ and modern server processors feature native hardware vector dot-product instructions (`vpdpbusd`) for 8-bit integers. ONNX Runtime leverages these execution units directly, delivering a **2.8× speedup (134.7 ms vs 382.4 ms)** with **zero loss in categorical accuracy or calibration**. For general server production, `QLaya-int8` represents the optimal configuration.
 
 ### 2. The CPU Software Unpack Penalty of INT4
 Standard x86 CPUs lack native 4-bit arithmetic units. Consequently, 4-bit packed weights must be expanded to 8-bit or 32-bit registers in software before matrix operations execute. 
@@ -61,9 +61,9 @@ Standard x86 CPUs lack native 4-bit arithmetic units. Consequently, 4-bit packed
 
 ### 3. Synergies of Depth Distillation + Quantization
 Combining architectural distillation with quantization bypasses the compression ceiling of quantization alone:
-- **`QLaya-HighSpeedProduction` (14L + INT8)**: Cuts storage by **-80.3%** down to 332.5 MB, runs at **78.4 ms p50 latency**, and retains **100.0% accuracy**.
-- **`QLaya-UltraFastEdge` (6L + INT8)**: Achieves sub-40ms CPU inference (**38.6 ms**, a 9.9× speedup over the teacher) while requiring only **210 MB of RAM**, making it ideal for edge appliances and mobile devices.
-- **`QLaya-UltraSmallStorage` (6L + INT4)**: Shrinks the original 1.7 GB baseline down to **142.1 MB (-91.6% reduction)** with 160 MB working RAM.
+- **`QLaya-14L-int8` (14L + INT8)**: Cuts storage by **-80.3%** down to 332.5 MB, runs at **78.4 ms p50 latency**, and retains **100.0% accuracy**.
+- **`QLaya-6L-int8` (6L + INT8)**: Achieves sub-40ms CPU inference (**38.6 ms**, a 9.9× speedup over the teacher) while requiring only **210 MB of RAM**, making it ideal for edge appliances and mobile devices.
+- **`QLaya-6L-int4` (6L + INT4)**: Shrinks the original 1.7 GB baseline down to **142.1 MB (-91.6% reduction)** with 160 MB working RAM.
 
 ### 4. Multilingual Routing Dynamics
 Evaluating decision accuracy across 51 languages (MASSIVE benchmark, 20-way intent classification) demonstrated that language script characteristics dictate backbone requirements:
@@ -76,7 +76,7 @@ Evaluating decision accuracy across 51 languages (MASSIVE benchmark, 20-way inte
 ## Installation
 
 ```bash
-pip install qlaya
+pip install -U qlaya
 ```
 
 Optional dependencies:
@@ -91,12 +91,11 @@ Optional dependencies:
 ### 1. Run Recommended Production ONNX Model
 
 ```python
-from huggingface_hub import hf_hub_download
 from qlaya.onnx_agent import ONNXAgent
 
-# Download ONNX checkpoint directly from this repository
-onnx_file = hf_hub_download(repo_id="saipy10/qlaya", filename="qlaya.int8.onnx")
-agent = ONNXAgent("saipy10/qlaya", onnx_path=onnx_file)
+# Loads directly via model ID or ONNX filename (auto-downloads from HF if missing):
+agent = ONNXAgent("saipy10/qlaya", onnx_path="qlaya.int8.onnx")
+# Or load by ID directly: agent = ONNXAgent(model_id_or_path="QLaya-int8")
 
 state = "The user is asking for a full refund for duplicate charge on invoice #9481."
 questions = {
@@ -111,12 +110,47 @@ questions = {
     }
 }
 
+# predict() returns {"model": ..., "answers": {<qid>: {...}}, "usage": {...}}
 result = agent.predict(state, questions)
-print("Decision:", result["intent"]["answer"])
-print("Confidence:", result["intent"]["confidence"])
+answers = result["answers"]
+
+print("Decision:", answers["intent"]["choice"])
+print("Confidence:", answers["intent"]["confidence"])
+print("Calibrated Conf:", answers["intent"]["answer_confidence"])
 ```
 
-### 2. Fast Routing (Pure Python, Zero-Weight Overhead)
+### 2. Email Phishing & Spam Screening
+
+```python
+from qlaya.onnx_agent import ONNXAgent
+from qlaya import email_state, email_questions
+
+agent = ONNXAgent("saipy10/qlaya", onnx_path="qlaya.int8.onnx")
+
+state = email_state(
+    subject="Urgent: Your account is scheduled for deactivation",
+    body="Please click the link below to confirm your password and avoid suspension.",
+    sender="security-alert@suspicious-bank-login.com",
+)
+
+# Built-in email security preset
+all_q = email_questions()
+eval_q = {
+    "is_phishing": all_q["is_phishing"],
+    "is_spam": all_q["is_spam"],
+}
+
+result = agent.predict(state, eval_q)
+answers = result["answers"]
+
+phishing_score = answers["is_phishing"]["noul"]  # 0.0 to 1.0 continuous score
+spam_score = answers["is_spam"]["noul"]
+
+print(f"Phishing probability: {phishing_score:.4f} -> Flagged: {phishing_score > 0.5}")
+print(f"Spam probability:     {spam_score:.4f} -> Flagged: {spam_score > 0.5}")
+```
+
+### 3. Fast Routing (Pure Python, Zero-Weight Overhead)
 
 ```python
 import qlaya

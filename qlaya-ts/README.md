@@ -14,6 +14,8 @@ npm install onnxruntime-web    # Browser / Deno
 
 ## Quick Start
 
+Ensure your `package.json` includes `"type": "module"` (or save your script with a `.mjs` extension).
+
 ```ts
 import { Router, QLAYA_MODELS, QLAYA_MODEL_IDS, resolveQLModel } from "qlaya";
 
@@ -27,17 +29,35 @@ const router = new Router("QLaya-int8");                // ONNX INT8, recommende
 const edge   = new Router("QLaya-6L-int8");             // 6L INT8, ~39 ms edge
 const small  = new Router("QLaya-6L-int4");             // 6L INT4, 142 MB
 
-// Resolve a model spec by QLaya ID manually:
-const spec     = resolveQLModel("QLaya-int8");          // { repo, subfolder }
-const edgeSpec = resolveQLModel("6l-int8");              // fuzzy slug, 6L INT8
+// Optional: preload model explicitly at application startup (otherwise auto-loaded on predict):
+await router.load("QLaya-int8");
 
-// Default multi-language routing:
-const defaultRouter = new Router();
-const result = await defaultRouter.predict(
+// Define routing questions
+const questions = {
+  intent: {
+    type: "choice",
+    instructions: "What is the customer's primary intent?",
+    criteria: {
+      refund: "Customer requests refund or dispute charge",
+      support: "Technical help or usage question",
+      sales: "Pricing, upgrade, or commercial inquiry",
+    },
+  },
+  urgency: {
+    type: "score",
+    instructions: "Rate urgency from 0 to 3",
+    criteria: ["low", "medium", "high", "critical"],
+  },
+};
+
+// Predict answers and calibrated probabilities
+const result = await router.predict(
   { text: "I was charged twice, please refund" },
   questions,
 );
-console.log(result.answers);
+
+console.log("Intent:", result.answers.intent.choice);
+console.log("Urgency score:", result.answers.urgency.score);
 ```
 
 ## Available Models

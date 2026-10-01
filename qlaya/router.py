@@ -75,17 +75,17 @@ STANDALONE_MODELS = {
 # ---------------------------------------------------------------------------
 QLAYA_MODELS: Dict[str, tuple] = {
     # --- Baseline / quantized teacher checkpoints (421M, ModernBERT) ---
-    "QLaya-fp32":             (BUNDLE_REPO, "qlaya-fp32"),
-    "QLaya-fp16":             (BUNDLE_REPO, "qlaya-fp16"),
-    "QLaya-int8":             (BUNDLE_REPO, "qlaya-int8"),                 # ⭐ recommended
-    "QLaya-int4-b32":         (BUNDLE_REPO, "qlaya-int4-b32"),
-    "QLaya-int4-b64":         (BUNDLE_REPO, "qlaya-int4-b64"),
+    "QLaya-fp32":             (BUNDLE_REPO, None),
+    "QLaya-fp16":             (BUNDLE_REPO, None),
+    "QLaya-int8":             (BUNDLE_REPO, None),                 # ⭐ recommended
+    "QLaya-int4-b32":         (BUNDLE_REPO, None),
+    "QLaya-int4-b64":         (BUNDLE_REPO, None),
     # --- Distilled student checkpoints (14L = 244M params, 6L = 143M params) ---
-    "QLaya-14L-fp32":         (BUNDLE_REPO, "qlaya-distil-14l-fp32"),
-    "QLaya-14L-int8":         (BUNDLE_REPO, "qlaya-distil-14l-int8"),
-    "QLaya-6L-fp32":          (BUNDLE_REPO, "qlaya-distil-6l-fp32"),
-    "QLaya-6L-int8":          (BUNDLE_REPO, "qlaya-distil-6l-int8"),
-    "QLaya-6L-int4":          (BUNDLE_REPO, "qlaya-distil-6l-int4"),
+    "QLaya-14L-fp32":         (BUNDLE_REPO, "distil_qlaya_14l"),
+    "QLaya-14L-int8":         (BUNDLE_REPO, "distil_qlaya_14l"),
+    "QLaya-6L-fp32":          (BUNDLE_REPO, "distil_qlaya_6l"),
+    "QLaya-6L-int8":          (BUNDLE_REPO, "distil_qlaya_6l"),
+    "QLaya-6L-int4":          (BUNDLE_REPO, "distil_qlaya_6l"),
 }
 
 # Primary canonical IDs for display, help text, and listings

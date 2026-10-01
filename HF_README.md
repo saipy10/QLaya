@@ -75,14 +75,17 @@ Evaluating decision accuracy across 51 languages (MASSIVE benchmark, 20-way inte
 
 ## Installation
 
+### Python
 ```bash
 pip install -U qlaya
+# For ONNX Runtime execution of quantized models:
+pip install qlaya[onnx]
 ```
 
-Optional dependencies:
-- `pip install qlaya[onnx]` — ONNX Runtime execution for quantized edge models.
-- `pip install qlaya[serve]` — FastAPI HTTP server.
-- `pip install qlaya[mcp]` — Model Context Protocol stdio server.
+### TypeScript / Node.js (npm)
+```bash
+npm install qlaya onnxruntime-node
+```
 
 ---
 

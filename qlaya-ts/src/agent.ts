@@ -449,8 +449,20 @@ export class Agent extends HookRegistry {
     if (!collated) throw new Error("no items to collate");
     const batch: Batch = collated;
     const nTokens = batch.attentionMask.flat().reduce((a, b) => a + b, 0);
-    const { lastHidden } = await this.provider.runEncoder(batch);
-    const { logits, act } = await this.provider.runHead(lastHidden, batch);
+    let logits: number[][];
+    let act: number[][];
+    if (typeof (this.provider as any).run === "function") {
+      const res = await (this.provider as any).run(batch);
+      logits = res.logits;
+      act = res.act;
+    } else if (typeof this.provider.runEncoder === "function" && typeof this.provider.runHead === "function") {
+      const { lastHidden } = await this.provider.runEncoder(batch);
+      const res = await this.provider.runHead(lastHidden, batch);
+      logits = res.logits;
+      act = res.act;
+    } else {
+      throw new Error("SessionProvider must implement run() or runEncoder() + runHead()");
+    }
     if (!Array.isArray(logits) || !Array.isArray(act) || logits.length < ids.length || act.length < ids.length) {
       throw new Error("model provider returned fewer output rows than input items");
     }
@@ -578,6 +590,8 @@ export class Agent extends HookRegistry {
        * or executed. A missing artifact or digest mismatch throws and loading is refused.
        */
       expectedSha256?: Record<string, string>;
+      /** Optional monolithic ONNX filename (e.g. "qlaya.int8.onnx"). */
+      onnxFile?: string;
     },
   ): Promise<Agent> {
     const sub = opts?.subfolder ?? null;
@@ -594,6 +608,7 @@ export class Agent extends HookRegistry {
         subfolder: sub,
         revision: opts?.revision,
         expectedSha256: opts?.expectedSha256,
+        onnxFile: opts?.onnxFile,
       });
       cfg = bundle.cfg;
       tokenizerJson = bundle.tokenizerJson;
@@ -602,6 +617,7 @@ export class Agent extends HookRegistry {
       provider = await createWebProvider(dir, {
         numThreads: opts?.numThreads,
         expectedSha256: opts?.expectedSha256,
+        onnxFile: opts?.onnxFile,
       });
     } else {
       const { loadNodeBundle, createNodeProvider } = await import("./providers.js");
@@ -611,13 +627,17 @@ export class Agent extends HookRegistry {
         token: opts?.token,
         revision: opts?.revision,
         expectedSha256: opts?.expectedSha256,
+        onnxFile: opts?.onnxFile,
       });
       cfg = bundle.cfg;
       tokenizerJson = bundle.tokenizerJson;
       dir = bundle.dir;
       revision = bundle.revision;
       provider = await createNodeProvider(dir, {
-        device: opts?.device, numThreads: opts?.numThreads, expectedSha256: opts?.expectedSha256,
+        device: opts?.device,
+        numThreads: opts?.numThreads,
+        expectedSha256: opts?.expectedSha256,
+        onnxFile: opts?.onnxFile,
       });
     }
     if (!tokenizerJson) {

@@ -19,6 +19,7 @@ export const BUNDLE_REPO = "saipy10/qlaya";
 export interface ModelSpec {
   repo: string;
   subfolder: string | null;
+  onnxFile?: string;
 }
 
 export const DEFAULT_MODELS: Record<string, ModelSpec> = {
@@ -47,33 +48,33 @@ export const STANDALONE_MODELS: Record<string, string> = {
  */
 export const QLAYA_MODELS: Record<string, ModelSpec> = {
   // Baseline / quantized teacher checkpoints (421M, ModernBERT)
-  "QLaya-fp32":                  { repo: BUNDLE_REPO, subfolder: "qlaya-fp32" },
-  "QLaya-fp16":                  { repo: BUNDLE_REPO, subfolder: "qlaya-fp16" },
-  "QLaya-int8":                  { repo: BUNDLE_REPO, subfolder: "qlaya-int8" },     // ⭐ recommended
-  "QLaya-int4-b32":              { repo: BUNDLE_REPO, subfolder: "qlaya-int4-b32" },
-  "QLaya-int4-b64":              { repo: BUNDLE_REPO, subfolder: "qlaya-int4-b64" },
+  "QLaya-fp32":                  { repo: BUNDLE_REPO, subfolder: null, onnxFile: "qlaya.fp32.onnx" },
+  "QLaya-fp16":                  { repo: BUNDLE_REPO, subfolder: null, onnxFile: "qlaya.fp16.onnx" },
+  "QLaya-int8":                  { repo: BUNDLE_REPO, subfolder: null, onnxFile: "qlaya.int8.onnx" },     // ⭐ recommended
+  "QLaya-int4-b32":              { repo: BUNDLE_REPO, subfolder: null, onnxFile: "qlaya.int4_b32.onnx" },
+  "QLaya-int4-b64":              { repo: BUNDLE_REPO, subfolder: null, onnxFile: "qlaya.int4_b64.onnx" },
   // Distilled student checkpoints (14L = 244M params, 6L = 143M params)
-  "QLaya-14L-fp32":              { repo: BUNDLE_REPO, subfolder: "qlaya-distil-14l-fp32" },
-  "QLaya-14L-int8":              { repo: BUNDLE_REPO, subfolder: "qlaya-distil-14l-int8" },
-  "QLaya-6L-fp32":               { repo: BUNDLE_REPO, subfolder: "qlaya-distil-6l-fp32" },
-  "QLaya-6L-int8":               { repo: BUNDLE_REPO, subfolder: "qlaya-distil-6l-int8" },
-  "QLaya-6L-int4":               { repo: BUNDLE_REPO, subfolder: "qlaya-distil-6l-int4" },
+  "QLaya-14L-fp32":              { repo: BUNDLE_REPO, subfolder: "distil_qlaya_14l", onnxFile: "distil_qlaya_14l.fp32.onnx" },
+  "QLaya-14L-int8":              { repo: BUNDLE_REPO, subfolder: "distil_qlaya_14l", onnxFile: "distil_qlaya_14l.int8.onnx" },
+  "QLaya-6L-fp32":               { repo: BUNDLE_REPO, subfolder: "distil_qlaya_6l", onnxFile: "distil_qlaya_6l.fp32.onnx" },
+  "QLaya-6L-int8":               { repo: BUNDLE_REPO, subfolder: "distil_qlaya_6l", onnxFile: "distil_qlaya_6l.int8.onnx" },
+  "QLaya-6L-int4":               { repo: BUNDLE_REPO, subfolder: "distil_qlaya_6l", onnxFile: "distil_qlaya_6l.int4.onnx" },
   // Backward-compatible legacy aliases
-  "QLaya-OriginalBaseline":      { repo: BUNDLE_REPO, subfolder: "qlaya-fp32" },
-  "QLaya-Balanced":              { repo: BUNDLE_REPO, subfolder: "qlaya-fp16" },
-  "QLaya-TopProduction":         { repo: BUNDLE_REPO, subfolder: "qlaya-int8" },
-  "QLaya-SlowCPU":               { repo: BUNDLE_REPO, subfolder: "qlaya-int4-b32" },
-  "QLaya-DegradedAccuracy":      { repo: BUNDLE_REPO, subfolder: "qlaya-int4-b64" },
-  "QLaya-IntermediateStudent":   { repo: BUNDLE_REPO, subfolder: "qlaya-distil-14l-fp32" },
-  "QLaya-HighSpeedProduction":   { repo: BUNDLE_REPO, subfolder: "qlaya-distil-14l-int8" },
-  "QLaya-CompactStudent":        { repo: BUNDLE_REPO, subfolder: "qlaya-distil-6l-fp32" },
-  "QLaya-UltraFastEdge":         { repo: BUNDLE_REPO, subfolder: "qlaya-distil-6l-int8" },
-  "QLaya-UltraSmallStorage":     { repo: BUNDLE_REPO, subfolder: "qlaya-distil-6l-int4" },
-  "QLaya-distil-14l-fp32":       { repo: BUNDLE_REPO, subfolder: "qlaya-distil-14l-fp32" },
-  "QLaya-distil-14l-int8":       { repo: BUNDLE_REPO, subfolder: "qlaya-distil-14l-int8" },
-  "QLaya-distil-6l-fp32":        { repo: BUNDLE_REPO, subfolder: "qlaya-distil-6l-fp32" },
-  "QLaya-distil-6l-int8":        { repo: BUNDLE_REPO, subfolder: "qlaya-distil-6l-int8" },
-  "QLaya-distil-6l-int4":        { repo: BUNDLE_REPO, subfolder: "qlaya-distil-6l-int4" },
+  "QLaya-OriginalBaseline":      { repo: BUNDLE_REPO, subfolder: null, onnxFile: "qlaya.fp32.onnx" },
+  "QLaya-Balanced":              { repo: BUNDLE_REPO, subfolder: null, onnxFile: "qlaya.fp16.onnx" },
+  "QLaya-TopProduction":         { repo: BUNDLE_REPO, subfolder: null, onnxFile: "qlaya.int8.onnx" },
+  "QLaya-SlowCPU":               { repo: BUNDLE_REPO, subfolder: null, onnxFile: "qlaya.int4_b32.onnx" },
+  "QLaya-DegradedAccuracy":      { repo: BUNDLE_REPO, subfolder: null, onnxFile: "qlaya.int4_b64.onnx" },
+  "QLaya-IntermediateStudent":   { repo: BUNDLE_REPO, subfolder: "distil_qlaya_14l", onnxFile: "distil_qlaya_14l.fp32.onnx" },
+  "QLaya-HighSpeedProduction":   { repo: BUNDLE_REPO, subfolder: "distil_qlaya_14l", onnxFile: "distil_qlaya_14l.int8.onnx" },
+  "QLaya-CompactStudent":        { repo: BUNDLE_REPO, subfolder: "distil_qlaya_6l", onnxFile: "distil_qlaya_6l.fp32.onnx" },
+  "QLaya-UltraFastEdge":         { repo: BUNDLE_REPO, subfolder: "distil_qlaya_6l", onnxFile: "distil_qlaya_6l.int8.onnx" },
+  "QLaya-UltraSmallStorage":     { repo: BUNDLE_REPO, subfolder: "distil_qlaya_6l", onnxFile: "distil_qlaya_6l.int4.onnx" },
+  "QLaya-distil-14l-fp32":       { repo: BUNDLE_REPO, subfolder: "distil_qlaya_14l", onnxFile: "distil_qlaya_14l.fp32.onnx" },
+  "QLaya-distil-14l-int8":       { repo: BUNDLE_REPO, subfolder: "distil_qlaya_14l", onnxFile: "distil_qlaya_14l.int8.onnx" },
+  "QLaya-distil-6l-fp32":        { repo: BUNDLE_REPO, subfolder: "distil_qlaya_6l", onnxFile: "distil_qlaya_6l.fp32.onnx" },
+  "QLaya-distil-6l-int8":        { repo: BUNDLE_REPO, subfolder: "distil_qlaya_6l", onnxFile: "distil_qlaya_6l.int8.onnx" },
+  "QLaya-distil-6l-int4":        { repo: BUNDLE_REPO, subfolder: "distil_qlaya_6l", onnxFile: "distil_qlaya_6l.int4.onnx" },
 };
 
 /** Primary canonical QLaya model IDs for validation / display. */
@@ -265,12 +266,15 @@ export interface RouteOptions {
 }
 
 function toSpec(spec: string | ModelSpec | [string, string | null]): ModelSpec {
-  if (typeof spec === "string") return { repo: spec, subfolder: null };
+  if (typeof spec === "string") {
+    if (spec in QLAYA_MODELS) return { ...QLAYA_MODELS[spec] };
+    return { repo: spec, subfolder: null, onnxFile: QLAYA_ONNX_FILES[spec] };
+  }
   if (Array.isArray(spec)) {
     const [repo, sub] = [...spec, null].slice(0, 2) as [string, string | null];
     return { repo, subfolder: sub ?? null };
   }
-  return { repo: spec.repo, subfolder: spec.subfolder ?? null };
+  return { repo: spec.repo, subfolder: spec.subfolder ?? null, onnxFile: spec.onnxFile };
 }
 
 function repoStr(spec: ModelSpec): string {
@@ -399,6 +403,7 @@ export class Router extends HookRegistry {
           subfolder: spec.subfolder,
           device: this.device ?? undefined,
           token: this.token ?? undefined,
+          onnxFile: spec.onnxFile ?? QLAYA_ONNX_FILES[key] ?? undefined,
         };
         if (revision) opts.revision = revision;
         agent = await (Agent as unknown as {

@@ -39,7 +39,7 @@ from .router import (
 )
 from .structured import DecisionResult, decide, decide_batch
 
-__version__ = "0.4.3"
+__version__ = "0.4.4"
 __qlaya_version__ = __version__
 
 # Routing, language detection and email cleaning are pure Python. The torch-backed names are

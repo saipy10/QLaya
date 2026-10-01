@@ -62,8 +62,9 @@ export interface Batch {
 }
 
 export interface SessionProvider {
-  runEncoder(batch: Batch): Promise<{ lastHidden: number[][][] }>;
-  runHead(hidden: number[][][] | unknown, batch: Batch): Promise<{ logits: number[][]; act: number[][] }>;
+  run?(batch: Batch): Promise<{ logits: number[][]; act: number[][] }>;
+  runEncoder?(batch: Batch): Promise<{ lastHidden: number[][][] }>;
+  runHead?(hidden: number[][][] | unknown, batch: Batch): Promise<{ logits: number[][]; act: number[][] }>;
 }
 
 function toNested(data: ArrayLike<number | bigint | boolean>, dims: number[]): any {
@@ -157,6 +158,42 @@ export function feedHead(ort: any, hidden: number[][][] | any, b: Batch): Record
   };
 }
 
+/** Feeds for a single row of a monolithic ONNX model. */
+export function feedMonolithicRow(ort: any, b: Batch, r: number): Record<string, any> {
+  const inRow = b.inputIds[r];
+  const maskRow = b.attentionMask[r];
+  const posRow = b.markerPos[r];
+  const mMaskRow = b.markerMask[r];
+  const qval = b.qtype[r];
+
+  const seqLen = inRow.length;
+  const numMarkers = posRow.length;
+
+  const inIds = new BigInt64Array(seqLen);
+  const attMask = new BigInt64Array(seqLen);
+  for (let i = 0; i < seqLen; i++) {
+    inIds[i] = BigInt(Math.trunc(inRow[i]));
+    attMask[i] = BigInt(Math.trunc(maskRow[i]));
+  }
+
+  const mPos = new BigInt64Array(numMarkers);
+  const mMask = new Uint8Array(numMarkers);
+  for (let i = 0; i < numMarkers; i++) {
+    mPos[i] = BigInt(Math.trunc(posRow[i]));
+    mMask[i] = mMaskRow[i] ? 1 : 0;
+  }
+
+  const qType = new BigInt64Array([BigInt(Math.trunc(qval))]);
+
+  return {
+    input_ids: new ort.Tensor("int64", inIds, [1, seqLen]),
+    attention_mask: new ort.Tensor("int64", attMask, [1, seqLen]),
+    marker_pos: new ort.Tensor("int64", mPos, [1, numMarkers]),
+    marker_mask: new ort.Tensor("bool", mMask, [1, numMarkers]),
+    qtype: new ort.Tensor("int64", qType, [1]),
+  };
+}
+
 function pickOutput(out: Record<string, any>, names: string[]): any {
   for (const n of names) if (out[n] !== undefined) return out[n];
   const vals = Object.values(out);
@@ -168,6 +205,8 @@ export interface ProviderOptions {
   numThreads?: number;
   /** Opt-in {artifact name: SHA-256 hexdigest} check for fetched ONNX files (web). */
   expectedSha256?: Record<string, string>;
+  /** Optional monolithic ONNX filename (e.g. "qlaya.int8.onnx"). */
+  onnxFile?: string;
 }
 
 function applyNumThreads(ort: any, numThreads?: number): void {
@@ -265,6 +304,7 @@ export async function loadNodeBundle(
     token?: string | null;
     revision?: string | null;
     expectedSha256?: Record<string, string>;
+    onnxFile?: string;
   },
 ): Promise<NodeBundle> {
   const fs: typeof import("node:fs/promises") = await import("node:fs/promises");
@@ -273,13 +313,22 @@ export async function loadNodeBundle(
   const sub = opts?.subfolder ?? null;
   let dir = opts?.localDir ?? modelDirOrRepo;
   let resolvedRevision: string | null = null;
+  let isLocal = false;
+
   try {
     const st = await fs.stat(sub ? path.join(dir, sub) : dir);
-    if (st.isDirectory()) dir = sub ? path.join(dir, sub) : dir;
-    else dir = path.dirname(dir);
+    if (st.isDirectory()) {
+      dir = sub ? path.join(dir, sub) : dir;
+      isLocal = true;
+    } else {
+      dir = path.dirname(dir);
+      isLocal = true;
+    }
   } catch {
-    // An explicit revision joins the cache key so differently-pinned artifacts never collide;
-    // otherwise the existing Hub-default cache is reused.
+    isLocal = false;
+  }
+
+  if (!isLocal) {
     const revision = resolveRevision(modelDirOrRepo, opts?.revision);
     resolvedRevision = revision;
     const cache = path.join(
@@ -294,33 +343,83 @@ export async function loadNodeBundle(
     await fs.mkdir(cache, { recursive: true });
     const token =
       opts?.token ?? (typeof process !== "undefined" ? (process as any).env?.["HF_TOKEN"] : undefined);
-    for (const f of ["rl_agent_config.json", "tokenizer.json", "tokenizer/tokenizer.json", "encoder.onnx", "head.onnx"]) {
+
+    const fetchAndCache = async (relPath: string, allowRootFallback = true): Promise<boolean> => {
+      const target = path.join(cache, relPath);
       try {
-        await fs.stat(path.join(cache, f));
-      } catch {
-        const url = `https://huggingface.co/${modelDirOrRepo}/resolve/${revision ?? "main"}/${sub ? sub + "/" : ""}${f}`;
-        const res = await fetch(url, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
-        const commit = res.headers?.get?.("x-repo-commit");
-        if (commit) resolvedRevision = commit;
-        if (!res.ok) {
-          if (f === "rl_agent_config.json") {
-            throw new Error(
-              `Incompatible model: ${JSON.stringify(modelDirOrRepo)} does not contain 'rl_agent_config.json'.`,
-            );
-          }
+        await fs.stat(target);
+        return true;
+      } catch {}
+
+      const candidateUrls: string[] = [
+        `https://huggingface.co/${modelDirOrRepo}/resolve/${revision ?? "main"}/${sub ? sub + "/" : ""}${relPath}`,
+      ];
+      if (sub && allowRootFallback) {
+        candidateUrls.push(
+          `https://huggingface.co/${modelDirOrRepo}/resolve/${revision ?? "main"}/${relPath}`,
+        );
+      }
+
+      for (const url of candidateUrls) {
+        let res: Response;
+        try {
+          res = await fetch(url, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+        } catch {
           continue;
         }
-        const target = path.join(cache, f);
-        await fs.mkdir(path.dirname(target), { recursive: true });
-        // Write-then-rename so an interrupted download never leaves a truncated
-        // artifact that later loads treat as complete.
-        const tmp = `${target}.tmp-${typeof process !== "undefined" ? process.pid : 0}`;
-        await fs.writeFile(tmp, new Uint8Array(await res.arrayBuffer()));
-        await fs.rename(tmp, target);
+        const commit = res.headers?.get?.("x-repo-commit");
+        if (commit) resolvedRevision = commit;
+        if (res.ok) {
+          try {
+            const buf = new Uint8Array(await res.arrayBuffer());
+            await fs.mkdir(path.dirname(target), { recursive: true });
+            const tmp = `${target}.tmp-${typeof process !== "undefined" ? process.pid : 0}`;
+            await fs.writeFile(tmp, buf);
+            await fs.rename(tmp, target);
+            return true;
+          } catch {
+            continue;
+          }
+        } else {
+          // Cleanly drain response stream so unhandled stream doesn't cause Windows libuv panic
+          try {
+            await res.arrayBuffer();
+          } catch {}
+        }
+      }
+      return false;
+    };
+
+    // 1. Download config (fallback to repo root if subfolder doesn't have it)
+    const configOk = await fetchAndCache("rl_agent_config.json", true);
+    if (!configOk) {
+      throw new Error(
+        `Incompatible model: ${JSON.stringify(modelDirOrRepo)} does not contain 'rl_agent_config.json'.`,
+      );
+    }
+
+    // 2. Download tokenizer
+    for (const f of ["tokenizer.json", "tokenizer/tokenizer.json"]) {
+      if (await fetchAndCache(f, true)) break;
+    }
+
+    // 3. Download ONNX model file(s)
+    if (opts?.onnxFile) {
+      await fetchAndCache(opts.onnxFile, true);
+      // Attempt optional external weights if they exist (e.g. *.fp32.onnx.data)
+      await fetchAndCache(`${opts.onnxFile}.data`, true);
+    } else {
+      const encOk = await fetchAndCache("encoder.onnx", false);
+      const headOk = await fetchAndCache("head.onnx", false);
+      if (!encOk || !headOk) {
+        // Fall back to default monolithic INT8 model for saipy10/qlaya
+        await fetchAndCache("qlaya.int8.onnx", true);
       }
     }
+
     dir = cache;
   }
+
   // Opt-in integrity check over the resolved directory (covers local dirs, warm cache,
   // and fresh downloads alike) before any artifact is parsed or executed.
   if (opts?.expectedSha256) {
@@ -383,16 +482,30 @@ export async function loadWebBundle(
     subfolder?: string | null;
     revision?: string | null;
     expectedSha256?: Record<string, string>;
+    onnxFile?: string;
   },
 ): Promise<WebBundle> {
   const revision = resolveRevision(repoOrUrl, opts?.revision);
   const base = baseUrlFor(repoOrUrl, opts?.subfolder ?? null, revision);
   let reportedRevision = revision;
   const fetchVerifiedJson = async (rel: string): Promise<unknown> => {
-    const buf = await fetchArrayBuffer(`${base}/${rel}`, (response) => {
-      const commit = response.headers?.get?.("x-repo-commit");
-      if (commit) reportedRevision = commit;
-    });
+    let buf: ArrayBuffer;
+    try {
+      buf = await fetchArrayBuffer(`${base}/${rel}`, (response) => {
+        const commit = response.headers?.get?.("x-repo-commit");
+        if (commit) reportedRevision = commit;
+      });
+    } catch (err) {
+      if (opts?.subfolder) {
+        const rootBase = baseUrlFor(repoOrUrl, null, revision);
+        buf = await fetchArrayBuffer(`${rootBase}/${rel}`, (response) => {
+          const commit = response.headers?.get?.("x-repo-commit");
+          if (commit) reportedRevision = commit;
+        });
+      } else {
+        throw err;
+      }
+    }
     if (opts?.expectedSha256) await expectDigest(rel, buf, opts.expectedSha256);
     return JSON.parse(new TextDecoder().decode(buf));
   };
@@ -425,6 +538,147 @@ export async function createNodeProvider(
   applyNumThreads(ort, opts?.numThreads);
   const fs: typeof import("node:fs/promises") = await import("node:fs/promises");
   const path: typeof import("node:path") = await import("node:path");
+
+  // Determine if a monolithic ONNX model is requested or present
+  let monoFile: string | null = opts?.onnxFile ?? null;
+  if (monoFile) {
+    const candidates = [
+      path.isAbsolute(monoFile) ? monoFile : path.join(modelDir, monoFile),
+      path.join(modelDir, path.basename(monoFile)),
+    ];
+    let found: string | null = null;
+    for (const c of candidates) {
+      try {
+        await fs.stat(c);
+        found = c;
+        break;
+      } catch {}
+    }
+    monoFile = found;
+  }
+
+  // If not explicitly provided, check if split models exist; if not, check for .onnx in modelDir
+  let hasSplit = false;
+  if (!monoFile) {
+    try {
+      await fs.stat(path.join(modelDir, "encoder.onnx"));
+      await fs.stat(path.join(modelDir, "head.onnx"));
+      hasSplit = true;
+    } catch {
+      hasSplit = false;
+      try {
+        const entries = await fs.readdir(modelDir);
+        const onnxFiles = entries.filter((e) => e.endsWith(".onnx") && !e.endsWith(".data"));
+        if (onnxFiles.length > 0) {
+          const pref = onnxFiles.find((f) => f.includes("int8")) ?? onnxFiles[0];
+          monoFile = path.join(modelDir, pref);
+        }
+      } catch {}
+    }
+  }
+
+  const dev = String(opts?.device ?? "cpu").toLowerCase();
+  const want = dev === "cuda" ? "cuda" : dev === "dml" ? "dml" : "cpu";
+
+  if (monoFile) {
+    if (opts?.expectedSha256) {
+      await expectDigest(path.basename(monoFile), await fs.readFile(monoFile), opts.expectedSha256);
+    }
+    const makeMono = async (ep: string) => {
+      return await ort.InferenceSession.create(monoFile, {
+        executionProviders: [ep],
+      });
+    };
+    let sess: any;
+    let activeEP = want;
+    try {
+      sess = await makeMono(want);
+    } catch (e) {
+      if (want !== "cpu") {
+        console.warn(`Warning: ${want.toUpperCase()} requested but not available. Falling back to CPU.`);
+        sess = await makeMono("cpu");
+        activeEP = "cpu";
+      } else {
+        throw e;
+      }
+    }
+
+    let cpuSess: any = null;
+    const ensureCpuMono = async () => {
+      if (!cpuSess) {
+        cpuSess = await ort.InferenceSession.create(monoFile, {
+          executionProviders: ["cpu"],
+        });
+      }
+      return cpuSess;
+    };
+
+    const runMonoWithFallback = async <T>(fn: (s: any) => Promise<T>): Promise<T> => {
+      try {
+        return await fn(sess);
+      } catch (e) {
+        if (activeEP !== "cpu" && isOomError(e)) {
+          console.warn("Warning: GPU memory exceeded during inference. Falling back to CPU...");
+          sess = await ensureCpuMono();
+          activeEP = "cpu";
+          return await fn(sess);
+        }
+        if (isOomError(e)) {
+          throw new Error(`${(e as Error).message} (GPU out of memory; try device: "cpu")`);
+        }
+        throw e;
+      }
+    };
+
+    const runMonolithic = async (b: Batch): Promise<{ logits: number[][]; act: number[][] }> => {
+      return runMonoWithFallback(async (s) => {
+        const nRows = b.inputIds.length;
+        if (nRows === 0) return { logits: [], act: [] };
+
+        if (nRows === 1) {
+          const feeds = feedMonolithicRow(ort, b, 0);
+          const out = await s.run(feeds);
+          const lt = pickOutput(out, ["logits"]);
+          const at = pickOutput(out, ["act_logits", "act"]);
+          const lNested = toNested(lt.data, lt.dims);
+          const aNested = toNested(at.data, at.dims);
+          const rowL = Array.isArray(lNested[0]) ? lNested[0] : lNested;
+          const rowA = Array.isArray(aNested[0]) ? aNested[0] : aNested;
+          return { logits: [rowL], act: [rowA] };
+        }
+
+        // Multi-question batch: execute row-by-row to bypass ONNX runtime broadcast error
+        const allLogits: number[][] = [];
+        const allAct: number[][] = [];
+        for (let r = 0; r < nRows; r++) {
+          const feeds = feedMonolithicRow(ort, b, r);
+          const out = await s.run(feeds);
+          const lt = pickOutput(out, ["logits"]);
+          const at = pickOutput(out, ["act_logits", "act"]);
+          const lNested = toNested(lt.data, lt.dims);
+          const aNested = toNested(at.data, at.dims);
+          const rowL = Array.isArray(lNested[0]) ? lNested[0] : lNested;
+          const rowA = Array.isArray(aNested[0]) ? aNested[0] : aNested;
+          allLogits.push(rowL);
+          allAct.push(rowA);
+        }
+        return { logits: allLogits, act: allAct };
+      });
+    };
+
+    return {
+      run: runMonolithic,
+      runEncoder: async () => ({ lastHidden: [] }),
+      runHead: async (_h, b) => runMonolithic(b),
+    };
+  }
+
+  if (!hasSplit) {
+    throw new Error(
+      `Incompatible model: no supported ONNX model found in ${JSON.stringify(modelDir)}. Expected a monolithic ONNX model or 'encoder.onnx' + 'head.onnx'.`,
+    );
+  }
+
   for (const f of ["encoder.onnx", "head.onnx"]) {
     const p = path.join(modelDir, f);
     try {
@@ -434,8 +688,6 @@ export async function createNodeProvider(
     }
     if (opts?.expectedSha256) await expectDigest(f, await fs.readFile(p), opts.expectedSha256);
   }
-  const dev = String(opts?.device ?? "cpu").toLowerCase();
-  const want = dev === "cuda" ? "cuda" : dev === "dml" ? "dml" : "cpu";
   const make = async (ep: string) => {
     const e = await ort.InferenceSession.create(`${modelDir}/encoder.onnx`, {
       executionProviders: [ep],
@@ -516,6 +768,65 @@ export async function createWebProvider(
   const ort: any = await import(/* @vite-ignore */ spec);
   applyNumThreads(ort, opts?.numThreads);
   const base = modelUrl.replace(/\/+$/, "");
+
+  if (opts?.onnxFile) {
+    const monoUrl = `${base}/${opts.onnxFile}`;
+    let monoBuf: ArrayBuffer;
+    try {
+      monoBuf = await fetchArrayBuffer(monoUrl);
+    } catch {
+      throw new Error(`Incompatible model: '${opts.onnxFile}' not found (expected ${monoUrl}).`);
+    }
+    if (opts?.expectedSha256) {
+      await expectDigest(opts.onnxFile, monoBuf, opts.expectedSha256);
+    }
+    let sess: any;
+    try {
+      sess = await ort.InferenceSession.create(new Uint8Array(monoBuf), {
+        executionProviders: ["webgpu", "wasm"],
+      });
+    } catch {
+      sess = await ort.InferenceSession.create(new Uint8Array(monoBuf), {
+        executionProviders: ["wasm"],
+      });
+    }
+    const runMonolithic = async (b: Batch): Promise<{ logits: number[][]; act: number[][] }> => {
+      const nRows = b.inputIds.length;
+      if (nRows === 0) return { logits: [], act: [] };
+      if (nRows === 1) {
+        const feeds = feedMonolithicRow(ort, b, 0);
+        const out = await sess.run(feeds);
+        const lt = pickOutput(out, ["logits"]);
+        const at = pickOutput(out, ["act_logits", "act"]);
+        const lNested = toNested(lt.data, lt.dims);
+        const aNested = toNested(at.data, at.dims);
+        const rowL = Array.isArray(lNested[0]) ? lNested[0] : lNested;
+        const rowA = Array.isArray(aNested[0]) ? aNested[0] : aNested;
+        return { logits: [rowL], act: [rowA] };
+      }
+      const allLogits: number[][] = [];
+      const allAct: number[][] = [];
+      for (let r = 0; r < nRows; r++) {
+        const feeds = feedMonolithicRow(ort, b, r);
+        const out = await sess.run(feeds);
+        const lt = pickOutput(out, ["logits"]);
+        const at = pickOutput(out, ["act_logits", "act"]);
+        const lNested = toNested(lt.data, lt.dims);
+        const aNested = toNested(at.data, at.dims);
+        const rowL = Array.isArray(lNested[0]) ? lNested[0] : lNested;
+        const rowA = Array.isArray(aNested[0]) ? aNested[0] : aNested;
+        allLogits.push(rowL);
+        allAct.push(rowA);
+      }
+      return { logits: allLogits, act: allAct };
+    };
+    return {
+      run: runMonolithic,
+      runEncoder: async () => ({ lastHidden: [] }),
+      runHead: async (_h, b) => runMonolithic(b),
+    };
+  }
+
   const encUrl = `${base}/encoder.onnx`;
   const headUrl = `${base}/head.onnx`;
   let encBuf: ArrayBuffer;
